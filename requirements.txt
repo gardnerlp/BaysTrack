@@ -1,0 +1,23 @@
+try:
+    import streamlit
+    print(f"Streamlit is installed. Version: {streamlit.__version__}")
+except ImportError:
+    print("Streamlit is not installed.")
+
+
+bays_mountain/
+├── app.py               # Main entry point for the Streamlit app
+├── pages/               # Folder to store different app pages
+│   ├── ethogram_form.py # Form page for capturing data
+│   ├── notes.py         # Notes page for collaboration
+│   └── calendar.py      # Calendar page for reminders
+├── database/            # Folder to manage database connections
+│   ├── db_connection.py # Script for database connections
+│   ├── mongo_connection.py # MongoDB connection script
+│   └── mssql_connection.py # MSSQL connection script
+├── requirements.txt     # List of dependencies
+├── utils/               # Utility functions
+│   ├── notes_utils.py   # Functions for handling notes
+│   ├── calendar_utils.py # Functions for handling calendar events
+│   └── ethogram_utils.py # Functions for ethogram data visualization
+└── README.md            # Documentation for the project
