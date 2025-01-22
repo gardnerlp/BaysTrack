@@ -1,70 +1,51 @@
-from database.mssql_connection import init_mssql_connection
+from database.postgresql_connection import init_postgres_connection
 
-def add_task(title, description, date, assigned_to=None, is_reminder=False):
-    """
-    Add a new task to the Tasks table.
-    """
-    conn = init_mssql_connection()
+def add_reminder(user_id, date, title, description, assigned_to=None, priority="Medium"):
+    conn = init_postgres_connection()
     cursor = conn.cursor()
     query = """
-        INSERT INTO Tasks (title, description, date, assigned_to, is_reminder, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, GETDATE(), GETDATE())
+    INSERT INTO reminders (user_id, date, title, description, assigned_to, priority)
+    VALUES (%s, %s, %s, %s, %s, %s)
     """
-    cursor.execute(query, (title, description, date, assigned_to, int(is_reminder)))
-    conn.commit()
-    conn.close()
-
-def update_task(task_id, title=None, description=None, date=None, assigned_to=None, is_reminder=None):
-    """
-    Update an existing task in the Tasks table.
-    """
-    conn = init_mssql_connection()
-    cursor = conn.cursor()
-    updates = []
-    params = []
-    
-    if title:
-        updates.append("title = ?")
-        params.append(title)
-    if description:
-        updates.append("description = ?")
-        params.append(description)
-    if date:
-        updates.append("date = ?")
-        params.append(date)
-    if assigned_to is not None:
-        updates.append("assigned_to = ?")
-        params.append(assigned_to)
-    if is_reminder is not None:
-        updates.append("is_reminder = ?")
-        params.append(int(is_reminder))
-    
-    query = f"UPDATE Tasks SET {', '.join(updates)}, updated_at = GETDATE() WHERE task_id = ?"
-    params.append(task_id)
+    params = (user_id, date, title, description, assigned_to, priority)
     cursor.execute(query, params)
     conn.commit()
     conn.close()
 
-def get_tasks_by_date(date):
-    """
-    Retrieve all tasks for a specific date.
-    """
-    conn = init_mssql_connection()
+def update_reminder(reminder_id, date, title, description, assigned_to, priority):
+    conn = init_postgres_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM Tasks WHERE date = ?"
-    cursor.execute(query, (date,))
-    tasks = cursor.fetchall()
+    query = """
+    UPDATE reminders
+    SET date = %s, title = %s, description = %s, assigned_to = %s, priority = %s
+    WHERE id = %s
+    """
+    params = (date, title, description, assigned_to, priority, reminder_id)
+    cursor.execute(query, params)
+    conn.commit()
     conn.close()
-    return tasks
 
-def get_all_tasks():
-    """
-    Retrieve all tasks for displaying on the main page.
-    """
-    conn = init_mssql_connection()
+def get_users():
+    conn = init_postgres_connection()
     cursor = conn.cursor()
-    query = "SELECT * FROM Tasks ORDER BY date"
+    query = "SELECT user_id, username, email FROM users"
     cursor.execute(query)
-    tasks = cursor.fetchall()
+    users = cursor.fetchall()
     conn.close()
-    return tasks
+    return users
+
+def get_reminders(user_id):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = """
+    SELECT id, date, title, description, assigned_to, priority
+    FROM reminders
+    WHERE user_id = %s OR assigned_to = %s
+    """
+    params = (user_id, user_id)
+    cursor.execute(query, params)
+    reminders = cursor.fetchall()
+    conn.close()
+    return reminders
+
+

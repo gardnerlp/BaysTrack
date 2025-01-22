@@ -1,0 +1,8 @@
+[server]
+allowRunOnSave = true
+
+[theme]
+base = "light"
+
+[ui]
+hideSidebarNav = true
