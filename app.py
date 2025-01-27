@@ -20,8 +20,6 @@ def main():
             query_params = st.query_params                    # experimental_get_query_params (Removed this because its outdated)
             page = query_params.get("page", ["main"])[0]
 
-            #showSidebarNavigation = True
-
             if page == "notes":
                 dashboard()
             else:
@@ -38,7 +36,7 @@ def dashboard():
     
     st.header("Notes")
     # Wrap the notes content inside the white-bordered container
-    with st.container(border=True):
+    with st.container(height=250, border=True):
         notes = get_notes_app()
         if notes:
             for note in notes:
