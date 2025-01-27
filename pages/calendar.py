@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
-from utils.calendar_utils import get_users, add_reminder, get_reminders, update_reminder, delete_reminder, get_users_det  # Adjust for your actual DB methods
+from utils.calendar_utils import get_users, add_reminder, get_reminders, update_reminder, delete_reminder, get_all_reminders, search_reminders
 from Login import login_page
 from utils.navbar import navbar
 import streamlit.components.v1 as components
-from streamlit_javascript import st_javascript
 from streamlit_calendar import calendar
 
 def calendar_page():
@@ -41,8 +40,6 @@ def calendar_page():
                 )
                 st.stop()
 
-        url = st_javascript("await fetch('').then(r => window.parent.location.href)")
-               
         st.title("Calendar & Reminders")
 
         # Ensure user is logged in
@@ -62,11 +59,57 @@ def calendar_page():
         user_dict_name = {user[0]: user[1].upper() for user in users}  # user_id: "username "
         user_list = list(user_dict.values())
 
+        #--------------------Calendar Section-------------------------
         # Fetch reminders for the logged-in user
-        reminders = get_reminders(user_id)
+        reminders_t = get_all_reminders()
         
+        # Define a priority-to-color mapping
+        priority_colors = {"High": "red", "Medium": "orange", "Low": "green"}
+
+        # Create events from reminders
+        events = [
+            {
+                "title": f"{reminder[4].capitalize()} : {reminder[2]}",  # title
+                "color": priority_colors.get(reminder[5], "gray"),  # priority -> color
+                "start": reminder[1].strftime("%Y-%m-%d")  # date as string
+            }
+            for reminder in reminders_t
+        ]
+        st.markdown('<div id="calendar"></div>', unsafe_allow_html=True)
+        # Display calendar with reminders
+        st.subheader("Calendar") # Pass the reminders grouped by date
+        with st.container(border=True):
+            calendar(events=events, custom_css="""
+                .fc-event-past {
+                    opacity: 0.8;
+                }
+                .fc-event-time {
+                    font-style: italic;
+                }
+                .fc-event-title {
+                    font-weight: 700;
+                }
+                .fc-toolbar-title {
+                    font-size: 1.3rem !important; /* Force the font size to apply */
+                }
+                .fc-event-title {
+                    font-size: 0.6rem !important; /* Force the font size to apply */
+                }
+            """)
+
+        #---------------------Search Reminder Section--------------------
+        st.markdown('<div id="search_reminder"></div>', unsafe_allow_html=True)    
+        st.subheader("Search Reminder")
+        search_query = st.text_input("Search reminder by title or description:")
+        # Display notes based on search query
+        reminders = search_reminders(search_query) if search_query else get_reminders(user_id)
         # Display reminders
         st.subheader("Your Reminders")
+        st.markdown("""
+            <p style="color: grey; font-size: 13px; margin-top: 0; margin-bottom: 0;">
+                Users must go to "Add a Reminder" section after clicking the Edit button
+            </p>
+        """, unsafe_allow_html=True)
         with st.container(height=300, border=True):
             if not reminders:
                 st.info("No reminders set.")
@@ -80,7 +123,7 @@ def calendar_page():
                         # Edit and delete buttons
                         col1, col2 = st.columns([5, 1]) 
                         with col1:
-                            if st.button("Edit  ", key=f"edit_{i}"):
+                            if st.button("Edit ", key=f"edit_{i}"):
                                 st.session_state.editing_reminder = {
                                     "id": reminder[0],
                                     "date": reminder[1],
@@ -89,7 +132,6 @@ def calendar_page():
                                     "assigned_to": reminder[4],
                                     "priority": reminder[5]
                                 }
-                                scroll(url,"add_Reminder")
                                 st.rerun()
                         with col2:
                             if st.button("Delete", key=f"delete_{i}"):
@@ -97,42 +139,70 @@ def calendar_page():
                                 st.success("Reminder deleted successfully!")
                                 st.rerun()
         
+
+        #--------------------Add a Reminder Section-------------------------
+        st.markdown('<div id="add_new_reminder"></div>', unsafe_allow_html=True)
+
         # Add/Update Reminder Section
-        st.markdown('<div id="add_Reminder"></div>', unsafe_allow_html=True)
-        st.header("Add a Reminder", anchor="add-reminder-section")
+        st.header("Add a Reminder")
         reminder = st.session_state.editing_reminder
+
+        # Default values for the form
+        default_date = date.today()
+        default_title = ""
+        default_description = ""
+        default_priority = "Medium"
+
+        # Reset form state when "Clear Form" is clicked
+        if "clear_form" not in st.session_state:
+            st.session_state.clear_form = False
+
+        if st.session_state.clear_form:
+            reminder = None  # Reset editing reminder
+            st.session_state.clear_form = False  # Reset the state to avoid looping
+
+        # Form for adding or updating a reminder
         with st.form('Notes Form', clear_on_submit=(reminder is None)):
             reminder_date = st.date_input(
                 "Select Date", 
-                value=reminder["date"] if reminder else date.today()
+                value=reminder["date"] if reminder else default_date
             )
             reminder_title = st.text_input(
                 "Reminder Title", 
-                value=reminder["title"] if reminder else ""
+                value=reminder["title"] if reminder else default_title
             )
             reminder_description = st.text_area(
                 "Description", 
-                value=reminder["description"] if reminder else ""
+                value=reminder["description"] if reminder else default_description
             )
-            
+
             # Ensure the assigned_to index is valid
             if reminder and user_dict.get(reminder["assigned_to"], "Unknown") in user_list:
-                assigned_to_index = user_list.index(user_dict.get(reminder["assigned_to"], "Unknown")) 
+                assigned_to_index = user_list.index(user_dict.get(reminder["assigned_to"], "Unknown"))
             else:
                 assigned_to_index = 0
-            
+
             assigned_to = st.selectbox(
                 "Assign to User", 
-                options= user_list,     #["Self"] +
+                options=user_list,     
                 index=assigned_to_index
             )
 
             priority = st.radio(
                 "Priority Level", 
                 options=["High", "Medium", "Low"], 
-                index=["High", "Medium", "Low"].index(reminder["priority"]) if reminder else 1
+                index=["High", "Medium", "Low"].index(reminder["priority"]) if reminder else ["High", "Medium", "Low"].index(default_priority)
             )
-            submitted = st.form_submit_button("Save Reminder")
+
+            col1, col2 = st.columns([5, 1]) 
+            with col1:
+                submitted = st.form_submit_button("Save Reminder")
+            with col2:
+                clear_form = st.form_submit_button("Clear Form")
+
+            if clear_form:
+                st.session_state.clear_form = True  # Set state to clear the form
+                st.rerun()
 
             if submitted:
                 if reminder_title.strip():
@@ -162,31 +232,34 @@ def calendar_page():
                 else:
                     st.error("Title cannot be empty.")
 
-def scroll(html, element_id):
-    return html.replace('</body>', """
-    <script>
-        window.onload = function() {{
-            console.log("Attempting to scroll to element with ID: {}");
-            var element = document.getElementById("{}");
-            if (element) {{
-                console.log("Element found, scrolling into view.");
-                element.scrollIntoView();
-            }} else {{
-                console.log("Element not found.");
-            }}
-        }};
-    </script>
-    </body>
-    """.format(element_id, element_id))
 
-def scroll_test(html, element_id):
-    return html.replace('</body>', """      
-    <script>
-        var element = document.getElementById("{}");
-        element.scrollIntoView();
-    </script>
-    </body>
-    """.format(element_id))     #.encode()
+        #Button to navigate to Search reminder section
+        st.markdown("""
+            <a href="#calendar">
+                <button style="position: fixed; right: 20px; bottom: 450px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
+                    Calendar
+                </button>
+            </a>
+        """, unsafe_allow_html=True)
+
+        #Button to navigate to Search reminder section
+        st.markdown("""
+            <a href="#search_reminder">
+                <button style="position: fixed; right: 20px; bottom: 400px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
+                    Search Reminder
+                </button>
+            </a>
+        """, unsafe_allow_html=True)
+        
+        #Button to navigate to Add new reminder section
+        st.markdown("""
+            <a href="#add_new_reminder">
+                <button style="position: fixed; right: 20px; bottom: 350px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
+                    Add New Reminder
+                </button>
+            </a>
+        """, unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     calendar_page()

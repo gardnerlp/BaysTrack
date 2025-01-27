@@ -67,6 +67,7 @@ def notes_page():
                 unsafe_allow_html=True,
             )
 
+        st.markdown('<div id="search_notes"></div>', unsafe_allow_html=True)
         st.title("Collaborative Notes")
         
         # Section for searching notes
@@ -122,7 +123,8 @@ def notes_page():
                                 st.rerun()  # Refresh the page to update the notes list 
         
         st.write("---") 
-        
+
+        st.markdown('<div id="add_new_notes"></div>', unsafe_allow_html=True)
         st.subheader("Add New Notes")
         with st.form('Notes From',clear_on_submit=True):
             st.text_input("Your Username:", value=username, disabled=True)
@@ -154,6 +156,25 @@ def notes_page():
 
                     st.success("Note added successfully!")
                     st.rerun()  # Refresh the page to show updated notes
+
+
+        #Button to navigate to search reminder section
+        st.markdown("""
+            <a href="#search_notes">
+                <button style="position: fixed; right: 20px; bottom: 400px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
+                    Search Notes
+                </button>
+            </a>
+        """, unsafe_allow_html=True)
+
+        #Button to navigate to Add new reminder section
+        st.markdown("""
+            <a href="#add_new_notes">
+                <button style="position: fixed; right: 20px; bottom: 350px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
+                    Add New Notes
+                </button>
+            </a>
+        """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":

@@ -69,8 +69,11 @@ def get_all_reminders():
     conn = init_postgres_connection()
     cursor = conn.cursor()
     query = """
-    SELECT id, date, title, description, assigned_to, priority
-    FROM reminders
+    SELECT id, date, title, description, 
+    (SELECT username FROM Users u WHERE u.user_id = r.assigned_to) AS assigned_to, 
+    priority
+    FROM reminders r
+    order by date desc
     """
     cursor.execute(query)
     reminders_all = cursor.fetchall()
@@ -84,3 +87,34 @@ def delete_reminder(reminder_id):
     conn.commit()
     conn.close()
 
+def search_reminders(query, priority=None, assigned_to=None):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+
+    query_string = """
+        SELECT 
+            id, 
+            (SELECT username FROM Users u WHERE u.user_id = r.user_id) AS created_by,
+            date, 
+            title, 
+            description, 
+            (SELECT username FROM Users u WHERE u.user_id = r.assigned_to) AS assigned_to,
+            priority, 
+            created_at
+        FROM reminders r
+        WHERE 
+            (title ILIKE %s OR description ILIKE %s)
+    """
+    params = [f'%{query}%', f'%{query}%']
+
+    if priority:
+        query_string += " AND priority = %s"
+        params.append(priority)
+    if assigned_to:
+        query_string += " AND assigned_to = %s"
+        params.append(assigned_to)
+
+    cursor.execute(query_string, params)
+    reminders = cursor.fetchall()
+    conn.close()
+    return reminders
