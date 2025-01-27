@@ -78,7 +78,7 @@ def notes_page():
         
         # Display notes with user and timestamp
         st.subheader("Your Notes")
-        with st.container(border=True):
+        with st.container(height=350, border=True):
             if notes:
                 for note in notes:
                     note_id, username, title, content, category, is_shared, created_at, updated_at, is_pinned = (
