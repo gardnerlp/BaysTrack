@@ -1,0 +1,13 @@
+ECHO is on.
+# Ignore virtual environment
+baysvenv/
+
+# Ignore Python bytecode files in database, pages, and utils
+database/__pycache__/
+pages/__pycache__/
+utils/__pycache__/
+__pycache__/
+*.pyc
+
+# Ignore temporary backup files
+temp_backup/
