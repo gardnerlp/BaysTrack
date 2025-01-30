@@ -4,7 +4,7 @@ from datetime import date
 from utils.calendar_utils import get_users, add_reminder, get_reminders, update_reminder, delete_reminder, get_all_reminders, search_reminders
 from Login import login_page
 from utils.navbar import navbar
-import streamlit.components.v1 as components
+#import streamlit.components.v1 as components
 from streamlit_calendar import calendar
 
 def calendar_page():

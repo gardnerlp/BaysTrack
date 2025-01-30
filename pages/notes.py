@@ -3,7 +3,7 @@ from datetime import datetime
 from utils.notes_utils import get_notes, add_note, search_notes, add_category, add_tag, pin_note, delete_note
 from Login import login_page
 from utils.navbar import navbar
-from streamlit_quill import st_quill
+#from streamlit_quill import st_quill
 
 def notes_page():
     '''
