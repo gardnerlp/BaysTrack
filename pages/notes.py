@@ -121,6 +121,8 @@ def notes_page():
                                 delete_note(note_id)  # Call the delete_note function
                                 st.success("Note deleted successfully!")
                                 st.rerun()  # Refresh the page to update the notes list 
+            else:
+                st.info("No notes created.")   
         
         st.write("---") 
 
