@@ -6,10 +6,10 @@ def submit_medical_log(animal_name, encounter_type, log_type, log_data):
     try:
         # Connect to the PostgreSQL database
         conn = psycopg2.connect(
-            host="localhost",  # Update with your host if necessary
-            database="your_database_name",  # Replace with your database name
-            user="your_username",  # Replace with your username
-            password="your_password"  # Replace with your password
+            host="localhost",  # Replace with your PostgreSQL host
+            database="Bays_Mountain",  # Replace with your PostgreSQL database name
+            user="gardnerlp",  # Replace with your PostgreSQL username
+            password="0418"  # Replace with your PostgreSQL password
         )
         cursor = conn.cursor()
 

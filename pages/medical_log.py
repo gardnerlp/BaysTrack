@@ -36,7 +36,7 @@ def medical_log_page():
                 "medication_administered": medication_administered,
                 "dosage": dosage,
             })
-            st.experimental_rerun()
+            st.rerun()
     
     st.write("---")
     
@@ -58,7 +58,7 @@ def medical_log_page():
                 "time_administered": str(time_administered),
                 "time_responded": str(time_responded),
             })
-            st.experimental_rerun()
+            st.rerun()
     
     st.write("---")
     
@@ -78,7 +78,7 @@ def medical_log_page():
                 "animal_accepted": animal_accepted,
                 "sedated": sedated_med,
             })
-            st.experimental_rerun()
+            st.rerun()
     
     st.write("---")
     
@@ -96,7 +96,7 @@ def medical_log_page():
                 "frequency": frequency,
                 "location": location,
             })
-            st.experimental_rerun()
+            st.rerun()
     
 if __name__ == "__main__":
     medical_log_page()

@@ -35,6 +35,7 @@ def feeding_log():
     with col2:
         st.subheader("Group Feedings")
         group_name = st.selectbox("Select Group", ["Deer", "Wolves", "Birds", "Other"], key="group_name", index=None)
+        group_food_type = st.selectbox("Select Food Type", ["Hay", "Pellets", "Fruits", "Vegetables", "Other"], key="food_type_group", index=None)
         group_amount_fed = st.selectbox("Select Amount Fed", ["0.25lb", "0.5lb", "1lb", "2lb", "5lb", "10lb"], key="amount_fed_group", index=None)
         if group_name == "Deer":
             deer_feed_scoops = st.number_input("Enter Number of Deer Feed Scoops", min_value=0, step=1, key="deer_feed_scoops", value=None)
@@ -47,6 +48,7 @@ def feeding_log():
         
         # Set the flag to trigger the form clearing logic
         st.session_state.form_submitted = True
+        st.rerun()
 
 if __name__ == "__main__":
     feeding_log()
