@@ -47,8 +47,6 @@ def calendar_page():
             st.warning("Please log in to access the calendar.")
             return
 
-        user_id = st.session_state["user_id"]
-
         # Initialize editing state
         if "editing_reminder" not in st.session_state:
             st.session_state.editing_reminder = None
