@@ -2,7 +2,7 @@
 allowRunOnSave = true
 
 [theme]
-base = "light"
+base = "dark"
 
-[ui]
-hideSidebarNav = true
+[client]
+showSidebarNavigation = false
