@@ -122,8 +122,8 @@ def notes_page():
                                 st.success("Note deleted successfully!")
                                 st.rerun()  # Refresh the page to update the notes list 
             else:
-                st.info("No notes created.")   
-        
+                st.info("No notes available.")
+
         st.write("---") 
 
         st.markdown('<div id="add_new_notes"></div>', unsafe_allow_html=True)

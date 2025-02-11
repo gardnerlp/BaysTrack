@@ -1,9 +1,6 @@
 --
 -- PostgreSQL database dump
 --
---Make sure the name of the database is Bays_Mountain
-Create role bays_owner with LOGIN PASSWORD 'B@V5';
-
 
 -- Dumped from database version 17.2
 -- Dumped by pg_dump version 17.2
@@ -23,6 +20,83 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: animalprofile; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.animalprofile (
+    profile_id integer NOT NULL,
+    animal_id integer,
+    diet character varying(100),
+    lifespan character varying(50),
+    behavior text,
+    fun_fact text,
+    name character varying(50) NOT NULL,
+    gender character varying(10) NOT NULL
+);
+
+
+ALTER TABLE public.animalprofile OWNER TO postgres;
+
+--
+-- Name: animalprofile_profile_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.animalprofile_profile_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.animalprofile_profile_id_seq OWNER TO postgres;
+
+--
+-- Name: animalprofile_profile_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.animalprofile_profile_id_seq OWNED BY public.animalprofile.profile_id;
+
+
+--
+-- Name: animals; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.animals (
+    animal_id integer NOT NULL,
+    habitat_id integer,
+    common_name character varying(100) NOT NULL,
+    scientific_name character varying(100),
+    status character varying(50)
+);
+
+
+ALTER TABLE public.animals OWNER TO postgres;
+
+--
+-- Name: animals_animal_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.animals_animal_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.animals_animal_id_seq OWNER TO postgres;
+
+--
+-- Name: animals_animal_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.animals_animal_id_seq OWNED BY public.animals.animal_id;
+
 
 --
 -- Name: categories; Type: TABLE; Schema: public; Owner: postgres
@@ -56,6 +130,43 @@ ALTER SEQUENCE public.categories_category_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.categories_category_id_seq OWNED BY public.categories.category_id;
+
+
+--
+-- Name: habitat; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.habitat (
+    habitat_id integer NOT NULL,
+    habitat_name character varying(100) NOT NULL,
+    description text,
+    location character varying(100),
+    size character varying(50)
+);
+
+
+ALTER TABLE public.habitat OWNER TO postgres;
+
+--
+-- Name: habitat_habitat_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.habitat_habitat_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.habitat_habitat_id_seq OWNER TO postgres;
+
+--
+-- Name: habitat_habitat_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.habitat_habitat_id_seq OWNED BY public.habitat.habitat_id;
 
 
 --
@@ -290,7 +401,8 @@ CREATE TABLE public.users (
     email character varying(255) NOT NULL,
     password character varying(255) NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    role character varying(20) DEFAULT 'user'::character varying
+    role character varying(20) DEFAULT 'user'::character varying,
+    active boolean DEFAULT true
 );
 
 
@@ -319,10 +431,31 @@ ALTER SEQUENCE public.users_user_id_seq OWNED BY public.users.user_id;
 
 
 --
+-- Name: animalprofile profile_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.animalprofile ALTER COLUMN profile_id SET DEFAULT nextval('public.animalprofile_profile_id_seq'::regclass);
+
+
+--
+-- Name: animals animal_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.animals ALTER COLUMN animal_id SET DEFAULT nextval('public.animals_animal_id_seq'::regclass);
+
+
+--
 -- Name: categories category_id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.categories ALTER COLUMN category_id SET DEFAULT nextval('public.categories_category_id_seq'::regclass);
+
+
+--
+-- Name: habitat habitat_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.habitat ALTER COLUMN habitat_id SET DEFAULT nextval('public.habitat_habitat_id_seq'::regclass);
 
 
 --
@@ -375,6 +508,22 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 
 
 --
+-- Name: animalprofile animalprofile_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.animalprofile
+    ADD CONSTRAINT animalprofile_pkey PRIMARY KEY (profile_id);
+
+
+--
+-- Name: animals animals_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.animals
+    ADD CONSTRAINT animals_pkey PRIMARY KEY (animal_id);
+
+
+--
 -- Name: categories categories_name_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -388,6 +537,14 @@ ALTER TABLE ONLY public.categories
 
 ALTER TABLE ONLY public.categories
     ADD CONSTRAINT categories_pkey PRIMARY KEY (category_id);
+
+
+--
+-- Name: habitat habitat_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.habitat
+    ADD CONSTRAINT habitat_pkey PRIMARY KEY (habitat_id);
 
 
 --
@@ -459,6 +616,22 @@ ALTER TABLE ONLY public.users
 --
 
 CREATE INDEX idx_notes_search ON public.notes USING btree (title, content);
+
+
+--
+-- Name: animalprofile animalprofile_animal_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.animalprofile
+    ADD CONSTRAINT animalprofile_animal_id_fkey FOREIGN KEY (animal_id) REFERENCES public.animals(animal_id);
+
+
+--
+-- Name: animals animals_habitat_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.animals
+    ADD CONSTRAINT animals_habitat_id_fkey FOREIGN KEY (habitat_id) REFERENCES public.habitat(habitat_id);
 
 
 --
@@ -1520,6 +1693,34 @@ GRANT ALL ON TABLE pg_catalog.pg_wait_events TO bays_owner;
 
 
 --
+-- Name: TABLE animalprofile; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE public.animalprofile TO bays_owner;
+
+
+--
+-- Name: SEQUENCE animalprofile_profile_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE public.animalprofile_profile_id_seq TO bays_owner;
+
+
+--
+-- Name: TABLE animals; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE public.animals TO bays_owner;
+
+
+--
+-- Name: SEQUENCE animals_animal_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE public.animals_animal_id_seq TO bays_owner;
+
+
+--
 -- Name: TABLE categories; Type: ACL; Schema: public; Owner: postgres
 --
 
@@ -1531,6 +1732,20 @@ GRANT ALL ON TABLE public.categories TO bays_owner;
 --
 
 GRANT ALL ON SEQUENCE public.categories_category_id_seq TO bays_owner;
+
+
+--
+-- Name: TABLE habitat; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON TABLE public.habitat TO bays_owner;
+
+
+--
+-- Name: SEQUENCE habitat_habitat_id_seq; Type: ACL; Schema: public; Owner: postgres
+--
+
+GRANT ALL ON SEQUENCE public.habitat_habitat_id_seq TO bays_owner;
 
 
 --

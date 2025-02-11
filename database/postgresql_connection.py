@@ -9,8 +9,8 @@ def init_postgres_connection():
         conn = psycopg2.connect(
             host="localhost",  # Replace with your PostgreSQL host
             database="Bays_Mountain",  # Replace with your PostgreSQL database name
-            user="gardnerlp",  # Replace with your PostgreSQL username
-            password="0418"  # Replace with your PostgreSQL password
+            user="bays_owner",  # Replace with your PostgreSQL username
+            password="B@V5"  # Replace with your PostgreSQL password
         )
         return conn
     except Exception as e:

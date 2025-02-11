@@ -4,7 +4,7 @@ import bcrypt
 def authenticate_user(email, password):
     conn = init_postgres_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT password, role FROM Users WHERE LOWER(email) = LOWER(%s)", (email,))
+    cursor.execute("SELECT password, role FROM Users WHERE active = True and LOWER(email) = LOWER(%s)", (email,))
     user = cursor.fetchone()
     conn.close()
 
@@ -22,12 +22,12 @@ def verify_password(plain_password, hashed_password):
     return bcrypt.checkpw(plain_password.encode(), hashed_password)
 
 
-def add_user(username, email, hashed_password, role):
+def add_user(username, email, hashed_password, role, active):
     conn = init_postgres_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO Users (username, email, password, role, created_at) VALUES (%s, LOWER(%s), %s, %s, NOW())",
-        (username, email, hashed_password, role)
+        "INSERT INTO Users (username, email, password, role, created_at, active) VALUES (%s, LOWER(%s), %s, %s, NOW(), %s)",
+        (username, email, hashed_password, role, active)
     )
     conn.commit()
     conn.close()
@@ -56,3 +56,51 @@ def check_email_exists(email):
     exists = cursor.fetchone()[0] > 0
     conn.close()
     return exists
+
+def get_all_users():
+    conn = init_postgres_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+                       SELECT user_id, INITCAP(username), email, role, active FROM Users
+                       order by user_id
+                       """)
+        users = cursor.fetchall()
+        return users
+    except Exception as e:
+        print("Error executing query:", e)
+        raise
+    finally:
+        conn.close()
+
+def get_users_det(user_id):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = "SELECT user_id, INITCAP(username), email, role, active FROM users WHERE user_id = %s"
+    params = (user_id,)
+    cursor.execute(query, params)
+    user = cursor.fetchall() 
+    conn.close()
+    return user
+
+def update_user(user_id, email, role, active):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE users
+        SET email = %s, role = %s, active = %s
+        WHERE User_id = %s
+    """, (email, role, active, user_id))
+    conn.commit()
+    conn.close()
+
+def update_password(user_id, password):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE users
+        SET password = %s
+        WHERE User_id = %s
+    """, (password, user_id))
+    conn.commit()
+    conn.close()
