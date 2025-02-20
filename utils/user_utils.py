@@ -26,7 +26,7 @@ def add_user(username, email, hashed_password, role, active):
     conn = init_postgres_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO Users (username, email, password, role, created_at, active) VALUES (%s, LOWER(%s), %s, %s, NOW(), %s)",
+        "INSERT INTO Users (username, email, password, role, created_at, active) VALUES (INITCAP(%s), LOWER(%s), %s, %s, NOW(), %s)",
         (username, email, hashed_password, role, active)
     )
     conn.commit()

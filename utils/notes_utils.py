@@ -1,6 +1,6 @@
 from database.postgresql_connection import init_postgres_connection
 
-def get_notes():
+def get_notes(user_id):
     """
     Fetch all notes from the Notes table.
     """
@@ -9,7 +9,7 @@ def get_notes():
     query = """
     SELECT 
         note_id, 
-        (SELECT username FROM Users b WHERE b.user_id = a.user_id) AS username,
+        (SELECT INITCAP(username) FROM Users b WHERE b.user_id = a.user_id) AS username,
         INITCAP(Title) AS Title, 
         content, 
         (SELECT name FROM categories c WHERE c.category_id = CAST(a.category AS INTEGER)) AS category,
@@ -17,20 +17,26 @@ def get_notes():
         created_at, 
         updated_at, 
         is_pinned
-    FROM Notes a;
+    FROM Notes a
+    where user_id=%s;
     """
-    cursor.execute(query)
+    cursor.execute(query,user_id)
     notes = cursor.fetchall()
     conn.close()
     return notes
 
-def get_notes_app():
+def get_notes_app(user_id):
     """
     Fetch all notes from the Notes table.
     """
     conn = init_postgres_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM Notes where is_pinned = True")
+    query = """
+        SELECT n1.*, '' as shared FROM Notes n1 where is_pinned = True and user_id=%s
+        union all
+        SELECT n2.*, '(SHARED NOTE)' as shared FROM Notes n2 where is_pinned = True and is_shared = true and user_id <> %s
+    """
+    cursor.execute(query, (user_id, user_id))
     notes = cursor.fetchall()
     conn.close()
     return notes
@@ -69,14 +75,14 @@ def add_note(user_id, title, content, category=None, is_shared=False):
     conn.close()
     return note_id
 
-def search_notes(query, category=None, tag=None):
+def search_notes(query, user_id, category=None, tag=None):
     conn = init_postgres_connection()
     cursor = conn.cursor()
 
     query_string = """
         SELECT 
             note_id, 
-            (SELECT username FROM Users b WHERE b.user_id = a.user_id) AS username,
+            (SELECT INITCAP(username) FROM Users b WHERE b.user_id = a.user_id) AS username,
             INITCAP(Title) AS Title, 
             content, 
             (SELECT name FROM categories c WHERE c.category_id = CAST(a.category AS INTEGER)) AS category,
@@ -84,10 +90,10 @@ def search_notes(query, category=None, tag=None):
             created_at, 
             updated_at, 
             is_pinned
-    FROM Notes a WHERE 
+    FROM Notes a WHERE user_id=%s and
         (title ILIKE %s OR content ILIKE %s)
     """
-    params = [f'%{query}%', f'%{query}%']
+    params = [user_id, f'%{query}%', f'%{query}%']
 
     if category:
         query_string += " AND category = %s"

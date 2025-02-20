@@ -32,7 +32,7 @@ def update_reminder(reminder_id, date, title, description, assigned_to, priority
 def get_users():
     conn = init_postgres_connection()
     cursor = conn.cursor()
-    query = "SELECT user_id, username, email FROM users"
+    query = "SELECT user_id, username, email FROM users order by user_id"
     cursor.execute(query)
     users = cursor.fetchall()
     conn.close()
@@ -57,25 +57,30 @@ def get_reminders(user_id):
     query = """
     SELECT id, date, title, description, assigned_to, priority
     FROM reminders
-    WHERE user_id = %s OR assigned_to = %s
+    WHERE user_id = %s
     """
-    params = (user_id, user_id)
+    params = (user_id)
     cursor.execute(query, params)
     reminders = cursor.fetchall()
     conn.close()
     return reminders
 
-def get_all_reminders():
+def get_all_reminders(user_id):
     conn = init_postgres_connection()
     cursor = conn.cursor()
-    query = """
+    query_string = """
     SELECT id, date, title, description, 
     (SELECT username FROM Users u WHERE u.user_id = r.assigned_to) AS assigned_to, 
     priority
     FROM reminders r
-    order by date desc
     """
-    cursor.execute(query)
+    if user_id:
+        query_string += " where assigned_to = %s order by date"
+        cursor.execute(query_string, user_id)
+    else:
+        query_string += "order by date desc"
+        cursor.execute(query_string)
+    
     reminders_all = cursor.fetchall()
     conn.close()
     return reminders_all
@@ -87,25 +92,69 @@ def delete_reminder(reminder_id):
     conn.commit()
     conn.close()
 
-def search_reminders(query, priority=None, assigned_to=None):
+def search_reminders(query, user_id, priority=None, assigned_to=None):
     conn = init_postgres_connection()
     cursor = conn.cursor()
 
     query_string = """
         SELECT 
             id, 
-            (SELECT username FROM Users u WHERE u.user_id = r.user_id) AS created_by,
+            date, 
+            title, 
+            description, 
+            assigned_to,
+            priority, 
+            created_at
+        FROM reminders r
+        WHERE user_id = %s and
+            (title ILIKE %s OR description ILIKE %s)
+    """
+    params = [user_id, f'%{query}%', f'%{query}%']
+
+    if priority:
+        query_string += " AND priority = %s"
+        params.append(priority)
+    if assigned_to:
+        query_string += " AND assigned_to = %s"
+        params.append(assigned_to)
+
+    cursor.execute(query_string, params)
+    reminders = cursor.fetchall()
+    conn.close()
+    return reminders
+
+def get_assigned_reminders(user_id):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = """
+    SELECT id, date, title, description, assigned_to, priority, user_id
+    FROM reminders
+    WHERE assigned_to = %s
+    """
+    params = (user_id)
+    cursor.execute(query, params)
+    reminders = cursor.fetchall()
+    conn.close()
+    return reminders
+
+def search_assigned_reminders(query, user_id, priority=None, assigned_to=None):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+
+    query_string = """
+        SELECT 
+            id, 
             date, 
             title, 
             description, 
             (SELECT username FROM Users u WHERE u.user_id = r.assigned_to) AS assigned_to,
-            priority, 
-            created_at
+            priority,
+            user_id
         FROM reminders r
-        WHERE 
+        WHERE assigned_to = %s and
             (title ILIKE %s OR description ILIKE %s)
     """
-    params = [f'%{query}%', f'%{query}%']
+    params = [user_id, f'%{query}%', f'%{query}%']
 
     if priority:
         query_string += " AND priority = %s"

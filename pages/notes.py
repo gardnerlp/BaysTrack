@@ -18,9 +18,9 @@ def notes_page():
     if not st.session_state.logged_in:
         login_page()
     else:
-        if "user_id" in st.session_state:
-            user_id = st.session_state["user_id"]
-            username = st.session_state["username"]
+        
+        user_id = st.session_state["user_id"]
+        username = st.session_state["username"]
 
         navbar()
         with st.sidebar:
@@ -75,7 +75,7 @@ def notes_page():
         search_query = st.text_input("Search notes by title or content:")
 
         # Display notes based on search query
-        notes = search_notes(search_query) if search_query else get_notes()
+        notes = search_notes(search_query,str(user_id)) if search_query else get_notes(str(user_id))
         
         # Display notes with user and timestamp
         st.subheader("Your Notes")
@@ -99,7 +99,7 @@ def notes_page():
                         **Category**: {category if category else "Uncategorized"}  
                         **Content**: {content}  
                         **Shared**: {"Yes" if is_shared else "No"}  
-                        **Created by**: {user_id}  
+                        **Created by**: {username}  
                         **Created at**: {created_at.strftime('%Y-%m-%d %H:%M:%S') if isinstance(created_at, datetime) else created_at}
                         """)
 

@@ -33,6 +33,8 @@ def dashboard():
     """
     navbar()
 
+    user_id = st.session_state["user_id"]
+
     st.title("Bays Mountain Dashboard")
     
     # Wrap the notes content inside the white-bordered container
@@ -40,18 +42,27 @@ def dashboard():
     with col1: 
         st.header("Notes")
         with st.container(height=300, border=True):
-            notes = get_notes_app()
+            notes = get_notes_app(str(user_id))
             if notes:
                 for note in notes:
-                    st.markdown(f"<p style='font-size:12.5px;'>{note[2]} - {note[3]}</p>", unsafe_allow_html=True)
+                    st.markdown(f"<p style='font-size:12.5px;'>{note[2]} - {note[3]} {note[9]}</p>", unsafe_allow_html=True)
                     st.markdown("<hr style='margin:4px 0;'>", unsafe_allow_html=True)
             else:
                 st.write("No notes available.")
 
     with col2: 
-        st.header("Reminders")
+        
+        col1, col2 = st.columns([1, 0.7])
+        with col1:
+            st.header("Reminders")
+        with col2:
+            filter_option = st.radio("", ("All", "Self"), horizontal=True)
         with st.container(height=300, border=True):
-            reminders = get_all_reminders()
+            if filter_option == "All":
+                var = ''
+                reminders = get_all_reminders(var)
+            else:
+                reminders = get_all_reminders(str(user_id))
             if reminders:
                 for reminder in reminders:
                     st.markdown(

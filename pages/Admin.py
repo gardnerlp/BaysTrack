@@ -94,7 +94,7 @@ def admin_page():
                 username = st.text_input("Username")
                 email = st.text_input("Email")
                 password = st.text_input("Password", type="password")
-                role = st.selectbox("Role", ["user", "admin"])  # Allow admin to assign roles
+                role = st.selectbox("Role", ["user", "admin","volunteer"])  # Allow admin to assign roles
                 active = st.selectbox("Active", ["True", "False"], disabled=True)
                 
                 #add_user_button = st.button("Add User")
@@ -150,7 +150,7 @@ def admin_page():
                     if st.session_state.selected_user_id:
                         st.text_input("User Name", value=user[0][1], disabled=True)
                         st.session_state.email_mod = st.text_input("Email", value=st.session_state.email_mod)
-                        st.session_state.role_mod = st.selectbox("Role", ["user", "admin"], index=["user", "admin"].index(st.session_state.role_mod))
+                        st.session_state.role_mod = st.selectbox("Role", ["user", "admin","volunteer"], index=["user", "admin","volunteer"].index(st.session_state.role_mod))
                         st.session_state.active_mod = st.selectbox("Active", ["True", "False"], index=["True", "False"].index(st.session_state.active_mod))
                     col1, col2 = st.columns([5, 1]) 
                     with col1:

@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
-from utils.calendar_utils import get_users, add_reminder, get_reminders, update_reminder, delete_reminder, get_all_reminders, search_reminders
+from utils.calendar_utils import get_users, add_reminder, get_reminders, update_reminder, delete_reminder
+from utils.calendar_utils import get_all_reminders, search_reminders, get_assigned_reminders, search_assigned_reminders
 from Login import login_page
 from utils.navbar import navbar
 #import streamlit.components.v1 as components
@@ -59,7 +60,7 @@ def calendar_page():
 
         #--------------------Calendar Section-------------------------
         # Fetch reminders for the logged-in user
-        reminders_t = get_all_reminders()
+        reminders_t = get_all_reminders('')
         
         # Define a priority-to-color mapping
         priority_colors = {"High": "red", "Medium": "orange", "Low": "green"}
@@ -99,10 +100,21 @@ def calendar_page():
         st.markdown('<div id="search_reminder"></div>', unsafe_allow_html=True)    
         st.subheader("Search Reminder")
         search_query = st.text_input("Search reminder by title or description:")
-        # Display notes based on search query
-        reminders = search_reminders(search_query) if search_query else get_reminders(user_id)
+        
+
         # Display reminders
-        st.subheader("Your Reminders")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.subheader("Your Reminders")
+        with col2:
+            filter_option = st.radio("", ("Assigned BY You", "Assigned TO You"), horizontal=True)
+
+        # Display notes based on search query
+        if filter_option == "Assigned BY You":
+            reminders = search_reminders(search_query, user_id) if search_query else get_reminders(str(user_id))
+        else:
+            reminders = search_assigned_reminders(search_query, user_id) if search_query else get_assigned_reminders(str(user_id))
+        
         st.markdown("""
             <p style="color: grey; font-size: 13px; margin-top: 0; margin-bottom: 0;">
                 Users must go to "Add a Reminder" section after clicking the Edit button
@@ -116,26 +128,30 @@ def calendar_page():
                     with st.expander(f"{reminder[1]}&nbsp;&nbsp;&nbsp; - &nbsp;&nbsp;&nbsp;{user_dict_name.get(reminder[4], 'Unknown')} : {reminder[2]} (Priority: {reminder[5]})"):  # Indexes based on query order
                         st.write(f"Date: {reminder[1]}")
                         st.write(f"Description: {reminder[3]}")
-                        st.write(f"Assigned To: {user_dict.get(reminder[4], 'Unknown')}")
+                        if filter_option == "Assigned BY You":
+                            st.write(f"Assigned To: {user_dict.get(reminder[4], 'Unknown')}")
+                        else:
+                            st.write(f"Assigned By: {user_dict.get(reminder[6], 'Unknown')}")
                         
                         # Edit and delete buttons
-                        col1, col2 = st.columns([5, 1]) 
-                        with col1:
-                            if st.button("Edit ", key=f"edit_{i}"):
-                                st.session_state.editing_reminder = {
-                                    "id": reminder[0],
-                                    "date": reminder[1],
-                                    "title": reminder[2],
-                                    "description": reminder[3],
-                                    "assigned_to": reminder[4],
-                                    "priority": reminder[5]
-                                }
-                                st.rerun()
-                        with col2:
-                            if st.button("Delete", key=f"delete_{i}"):
-                                delete_reminder(reminder[0])
-                                st.success("Reminder deleted successfully!")
-                                st.rerun()
+                        if filter_option == "Assigned BY You":
+                            col1, col2 = st.columns([5, 1]) 
+                            with col1:
+                                if st.button("Edit ", key=f"edit_{i}"):
+                                    st.session_state.editing_reminder = {
+                                        "id": reminder[0],
+                                        "date": reminder[1],
+                                        "title": reminder[2],
+                                        "description": reminder[3],
+                                        "assigned_to": reminder[4],
+                                        "priority": reminder[5]
+                                    }
+                                    st.rerun()
+                            with col2:
+                                if st.button("Delete", key=f"delete_{i}"):
+                                    delete_reminder(reminder[0])
+                                    st.success("Reminder deleted successfully!")
+                                    st.rerun()
         
 
         #--------------------Add a Reminder Section-------------------------

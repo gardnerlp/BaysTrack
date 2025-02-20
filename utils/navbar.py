@@ -3,6 +3,9 @@ from Login import login_page
 
 def navbar():
     # Sidebar navigation
+    username = st.session_state["username"]
+
+    st.sidebar.markdown(f"<p style='font-size:25px; font-weight:bold; font-family:'Calibri';'>{username}</p>",unsafe_allow_html=True)
     st.sidebar.page_link('app.py', label='Home')
     st.sidebar.page_link('pages/Notes.py', label='Notes')
     st.sidebar.page_link('pages/Calendar.py', label='Calendar')
