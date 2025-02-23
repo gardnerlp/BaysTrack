@@ -28,17 +28,21 @@ def main():
         st.title("Log Type")
         st.write("Select the type of log you want to record:")
 
-        if st.button("Feeding Log"):
-            st.switch_page("pages/feeding_log.py")
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.subheader("Mammal Keeper Log")
+            with st.container(border=True):
+                if st.button("Feeding Log", use_container_width=True):
+                    st.switch_page("pages/feeding_log.py")
 
-        if st.button("Enrichment Log"):
-            st.switch_page("pages/enrichment_log.py")
+                if st.button("Enrichment Log", use_container_width=True):
+                    st.switch_page("pages/enrichment_log.py")
 
-        if st.button("Habitat Cleaning Log"):
-            st.switch_page("pages/habitat_cleaning_log.py")
+                if st.button("Habitat Cleaning Log", use_container_width=True):
+                    st.switch_page("pages/habitat_cleaning_log.py")
 
-        if st.button("Medical Log"):
-            st.switch_page("pages/medical_log.py")
+                if st.button("Medical Log", use_container_width=True):
+                    st.switch_page("pages/medical_log.py")
 
 if __name__ == "__main__":
     main()
