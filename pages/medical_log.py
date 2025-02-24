@@ -1,6 +1,6 @@
 import streamlit as st
 from Login import login_page
-from utils.medical_utils import add_injury_log, add_sedation_log, add_medslog, add_medslog_main
+from utils.medical_utils import add_injury_log, add_sedation_log, add_medslog, add_medslog_main, add_vetlog
 from utils.navbar import navbar
 from streamlit_free_text_select import st_free_text_select
 import uuid
@@ -59,23 +59,33 @@ def medical_log_page():
             st.session_state.encounter_key = get_unique_key("encounter_select")
             st.session_state["meds_taken"] = None
 
-            st.session_state["vet_type"] = ""
-            st.session_state["vet_name"] = ""
-            st.session_state["check_type"] = ""
-            st.session_state["vet_location"] = None
-            st.session_state["vet_exam_notes"] = ""
-
             st.session_state["med_log_notes"] = ""
 
             st.session_state.form_submitted = False
-            st.rerun() 
+            st.rerun()
 
+        
+        if 'vet_form_submitted' in st.session_state and st.session_state.vet_form_submitted:
+            st.session_state.vetlog_animal_key = get_unique_key("vetlog_animal_select")
+            st.session_state["vet_animal_name"] = ""
+            
+            #st.session_state["vet_type"] = ""
+            st.session_state["vet_name"] = ""
+            st.session_state["check_type"] = ""
+            st.session_state.check_key = get_unique_key("check_select")
+            st.session_state["vet_location"] = None
+            st.session_state["vet_exam_notes"] = ""
+
+            st.session_state.vet_form_submitted = False
+            st.rerun()
+
+
+        st.markdown('<div id="medical_log"></div>', unsafe_allow_html=True)
 
         if st.button("Back", use_container_width=False):
             st.switch_page("pages/ethogram_form.py")
-    
-        st.title("Medical Log")
 
+        st.title("Medical Log") 
 
         with st.container(border=True):
             if "animal_key" not in st.session_state:
@@ -103,7 +113,7 @@ def medical_log_page():
             
             encounter_type = st_free_text_select(
                 label="Encounter Type",
-                options=["Medication","Vaccination","Vet-Visit","Routine Check", "Emergency", "Follow-up"],
+                options=["Medication","Vaccination","Routine Check", "Emergency", "Follow-up"],     #"Vet-Visit",
                 index=None,
                 format_func=lambda x: x.capitalize(),
                 placeholder="Select or enter an animal",
@@ -262,7 +272,7 @@ def medical_log_page():
                         st.error("Please fill out Sedation Administration Route.")
                         return
                     if not meds_taken:
-                        st.error("Please fill out animal took the medication.")
+                        st.error("Please fill out if animal took the medication.")
                         return
                     
                     medication_id = add_medslog(
@@ -280,21 +290,97 @@ def medical_log_page():
                     injury, injury_id, sedated, sedation_id, 
                     vet_notified, vet_response, medication, medication_id, injury_description)
 
-                st.success("Habitat cleaning log submitted successfully!")
+                st.success("Medical log submitted successfully!")
                 st.session_state.form_submitted = True
                 st.rerun()       
         
+        
         st.write("---")
+        st.markdown('<div id="vet_log"></div>', unsafe_allow_html=True)
+        st.title("Vet Log")
 
-        with st.expander("Vet"):
-            vet_type = st.text_input("Vet Intervention Type:", key="vet_type")
-            vet_name = st.text_input("Vet Name:", key="vet_name")
-            vet_check = st.text_input("Check Type:", key="check_type")
-            location = st.selectbox("Location:", ["On-Site", "Took-to-vet"], index=None, key="vet_location")
-            vet_exam_notes = st.text_input("Examination Notes:", key="vet_exam_notes")
+        with st.container(border=True):
+
+            if "vetlog_animal_key" not in st.session_state:
+                st.session_state.vetlog_animal_key = "vetlog_animal_select"
+            vet_animal_group = st_free_text_select(
+                label="Animal Type:",
+                options=["Bobcat", "Deer", "Red Fox", "River Otter", "Wolf"],
+                index=None,
+                format_func=lambda x: x.capitalize(),
+                placeholder="Select or enter Animal Type",
+                disabled=False,
+                delay=300,
+                key=st.session_state.vetlog_animal_key, 
+                label_visibility="visible",
+            )
+            # Animal name and encounter type
+            vet_animal_name = st.text_input("Animal Name:", key="vet_animal_name")
             
-            if st.button("Submit Vet Data", key="submit_vet"):  
+            #vet_type = st.text_input("Vet Intervention Type:", key="vet_type")
+            vet_name = st.text_input("Vet Name:", key="vet_name")
+            
+            if "check_key" not in st.session_state:
+                st.session_state.check_key = "check_select"
+            vet_check = st_free_text_select(
+                label="Vet Check Type:",
+                options=["Yearly Assessment","Quaterly Assessment","Fecal Check","Injury Check"],
+                index=None,
+                format_func=lambda x: x.capitalize(),
+                placeholder="Select or enter Vet Check Type",
+                disabled=False,
+                delay=300,
+                key=st.session_state.check_key, 
+                label_visibility="visible",
+            )
+            location = st.selectbox("Vet Examination Location:", ["On-Site", "Took-to-vet"], index=None, key="vet_location")
+            vet_exam_notes = st.text_area("Examination Notes:", key="vet_exam_notes")
+            
+            if st.button("Submit Vet Data", key="submit_vet"): 
+                
+                if not vet_animal_group:
+                    st.error("Please fill out Animal Type before submitting the medical log.")
+                    return
+                if not vet_animal_name:
+                    st.error("Please fill out Animal Name before submitting the medical log.")
+                    return
+                if not vet_name:
+                    st.error("Please fill out Vet Name.")
+                    return
+                if not vet_check:
+                    st.error("Please fill out Vet Check Type.")
+                    return
+                if not location:
+                    st.error("Please fill out Vet Examination Location.")
+                    return 
+                if not vet_exam_notes:
+                    st.error("Please fill out Vet Examination Notes. If there is not significant notes then type 'NSF'")
+                    return 
+                
+                add_vetlog(user_id, formatted_time, vet_animal_group, vet_animal_name, vet_name, vet_check, location, vet_exam_notes)
+                
+                st.success("Vet log submitted successfully!")
+                st.session_state.vet_form_submitted = True
                 st.rerun()
+
+
+        #Button to navigate to search reminder section
+        st.markdown("""
+            <a href="#medical_log">
+                <button style="position: fixed; right: 20px; bottom: 400px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
+                    Add Medical Log
+                </button>
+            </a>
+        """, unsafe_allow_html=True)
+
+        #Button to navigate to Add new reminder section
+        st.markdown("""
+            <a href="#vet_log">
+                <button style="position: fixed; right: 20px; bottom: 350px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
+                    Add Vet Log
+                </button>
+            </a>
+        """, unsafe_allow_html=True)
         
     
 def get_unique_key(base_key):

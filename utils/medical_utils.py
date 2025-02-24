@@ -56,3 +56,15 @@ def add_medslog_main(user_id, datetime, animal_group, individual_name, encounter
     cursor.execute(query, params)
     conn.commit()
     conn.close()
+
+def add_vetlog(user_id, datetime, animal_group, individual_name, vet_name, check_type, vet_location, vet_notes):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO vet_log (user_id, datetime, animal_group, individual_name, vet_name, check_type, vet_location, vet_notes)
+    VALUES (%s, %s, %s, INITCAP(%s), INITCAP(%s), %s, %s, %s)
+    """
+    params = (user_id, datetime, animal_group, individual_name, vet_name, check_type, vet_location, vet_notes)
+    cursor.execute(query, params)
+    conn.commit()
+    conn.close()
