@@ -1,45 +1,30 @@
-import psycopg2
-from psycopg2 import sql
+from database.postgresql_connection import init_postgres_connection
 
-# Function to insert feeding log data into PostgreSQL
-def submit_feeding_log(feeding_type, name, food_type, amount_fed, leftover_food, deer_feed_scoops, notes):
-    try:
-        # Connect to the PostgreSQL database
-        conn = psycopg2.connect(
-            host="localhost",  # Replace with your PostgreSQL host
-            database="Bays_Mountain",  # Replace with your PostgreSQL database name
-            user="gardnerlp",  # Replace with your PostgreSQL username
-            password="0418"  # Replace with your PostgreSQL password
-        )
-        cursor = conn.cursor()
+def add_feedinglog(user_id, datetime, animal_group, individual_name, food_type, amount_fed, observation_type, leftover_food, deer_feed_scoops, meds_added, individual_notes, med_log_id):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO feeding_logs (user_id, datetime, animal_group, individual_name, food_type, amount_fed, observation_type, 
+    leftover_food, deer_feed_scoops, meds_added, individual_notes, med_log_id)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    params = (user_id, datetime, animal_group, individual_name, food_type, amount_fed, observation_type, leftover_food, deer_feed_scoops, meds_added, individual_notes, med_log_id)
+    cursor.execute(query, params)
+    conn.commit()
+    conn.close()
 
-        # Insert into the single feeding_log table
-        query = sql.SQL("""
-            INSERT INTO feeding_log (
-                feeding_type, name, food_type, amount_fed, leftover_food, deer_feed_scoops, notes
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """)
+def add_medslog(user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO med_log (user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    RETURNING id;
+    """
+    params = (user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken)
+    cursor.execute(query, params)
+    med_log_id = cursor.fetchone()[0] 
+    conn.commit()
+    conn.close()
+    return med_log_id
 
-        values = (
-            feeding_type,  # "Individual" or "Group"
-            name,
-            food_type,
-            amount_fed,
-            leftover_food if leftover_food else None,  # Handle optional leftover_food
-            deer_feed_scoops if deer_feed_scoops else None,  # Handle optional deer_feed_scoops
-            notes
-        )
-
-        # Execute the query with the values
-        cursor.execute(query, values)
-
-        # Commit the transaction to save the data
-        conn.commit()
-
-        # Close the cursor and connection
-        cursor.close()
-        conn.close()
-
-    except Exception as e:
-        print(f"Error: {e}")

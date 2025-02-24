@@ -3,6 +3,8 @@ from Login import login_page
 from utils.navbar import navbar  # Import your navbar function
 from streamlit_free_text_select import st_free_text_select
 import uuid
+from utils.habitat_cleaning_utils import add_habitat_cleaning_log
+from datetime import datetime
 
 def habitat_cleaning_log():
     
@@ -28,6 +30,8 @@ def habitat_cleaning_log():
                 st.stop()
 
         user_id = st.session_state["user_id"]
+        current_time = datetime.now()
+        formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
 
         # Check if the form was submitted and reset session state if necessary
         if 'form_submitted' in st.session_state and st.session_state.form_submitted:
@@ -97,6 +101,21 @@ def habitat_cleaning_log():
             description = st.text_area("Description of Cleaning", key="individual_notes")
         
             if st.button("Submit Habitat Cleaning Log"):
+                if not animal_group:
+                    st.error("Please fill out Animal Type before submitting the habitat log.")
+                    return
+                if not observation_type:
+                    st.error("Please select or enter Observation Type before submitting the habitat log.")
+                    return
+                if not habitat_name:
+                    st.error("Please select or enter Habitat Name before submitting the habitat log.")
+                    return
+                if not description:
+                    st.error("Please enter Cleaning Description before submitting the habitat log.")
+                    return
+                
+                add_habitat_cleaning_log(user_id, formatted_time, animal_group, observation_type, habitat_name, findings, description)
+
                 st.success("Habitat cleaning log submitted successfully!")
                 st.session_state.form_submitted = True
                 st.rerun()

@@ -1,93 +1,58 @@
-import psycopg2
-from psycopg2 import sql
+from database.postgresql_connection import init_postgres_connection
 
-# Function to insert medical log data into PostgreSQL
-def submit_medical_log(animal_name, encounter_type, log_type, log_data):
-    try:
-        # Connect to the PostgreSQL database
-        conn = psycopg2.connect(
-            host="localhost",  # Replace with your PostgreSQL host
-            database="Bays_Mountain",  # Replace with your PostgreSQL database name
-            user="gardnerlp",  # Replace with your PostgreSQL username
-            password="0418"  # Replace with your PostgreSQL password
-        )
-        cursor = conn.cursor()
+def add_injury_log(user_id, datetime, animal_group, individual_name, encounter_type, injury_type, injury_desc, exam_type):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO injury_log (user_id, datetime, animal_group, individual_name, encounter_type, injury_type, injury_desc, exam_type)
+    VALUES (%s, %s, %s, INITCAP(%s), %s, %s, %s, %s)
+    RETURNING id;
+    """
+    params = (user_id, datetime, animal_group, individual_name, encounter_type, injury_type, injury_desc, exam_type)
+    cursor.execute(query, params)
+    injury_id = cursor.fetchone()[0]
+    conn.commit()
+    conn.close()
+    return injury_id
 
-        # Prepare the insert query based on the log type
-        if log_type == "Injuries":
-            query = sql.SQL("""
-                INSERT INTO medical_injuries (
-                    animal_name, encounter_type, injury_type, injury_description, 
-                    exam_type, sedated, vet_notified, vet_response, 
-                    medication_administered, dosage
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """)
+def add_sedation_log(user_id, datetime, animal_group, individual_name, encounter_type, sedation_med, dose, sedation_kit, sedation_route, time_in, time_out):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO sedation_log (user_id, datetime, animal_group, individual_name, encounter_type, sedation_med, dose, sedation_kit, sedation_route, time_in, time_out)
+    VALUES (%s, %s, %s, INITCAP(%s), %s, %s, %s, %s, %s, %s, %s)
+    RETURNING id;
+    """
+    params = (user_id, datetime, animal_group, individual_name, encounter_type, sedation_med, dose, sedation_kit, sedation_route, time_in, time_out)
+    cursor.execute(query, params)
+    sedation_id = cursor.fetchone()[0]
+    conn.commit()
+    conn.close()
+    return sedation_id
 
-            values = (
-                animal_name, encounter_type, 
-                log_data["injury_type"], log_data["injury_description"], 
-                log_data["exam_type"], log_data["sedated"], 
-                log_data["vet_notified"], log_data["vet_response"], 
-                log_data["medication_administered"], log_data["dosage"]
-            )
-        
-        elif log_type == "Sedation":
-            query = sql.SQL("""
-                INSERT INTO medical_sedation (
-                    animal_name, encounter_type, sedation_medication, sedation_kit, 
-                    administration_method, dose, time_administered, time_responded
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """)
+def add_medslog(user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO med_log (user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken)
+    VALUES (%s, %s, %s, INITCAP(%s), %s, %s, %s, %s, %s)
+    RETURNING id;
+    """
+    params = (user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken)
+    cursor.execute(query, params)
+    med_log_id = cursor.fetchone()[0] 
+    conn.commit()
+    conn.close()
+    return med_log_id
 
-            values = (
-                animal_name, encounter_type, 
-                log_data["sedation_medication"], log_data["sedation_kit"], 
-                log_data["administration_method"], log_data["dose"], 
-                log_data["time_administered"], log_data["time_responded"]
-            )
-
-        elif log_type == "Medication":
-            query = sql.SQL("""
-                INSERT INTO medical_medication (
-                    animal_name, encounter_type, med_type, med_dose, 
-                    admin_route, animal_accepted, sedated
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """)
-
-            values = (
-                animal_name, encounter_type, 
-                log_data["med_type"], log_data["med_dose"], 
-                log_data["admin_route"], log_data["animal_accepted"], 
-                log_data["sedated"]
-            )
-
-        elif log_type == "Vet":
-            query = sql.SQL("""
-                INSERT INTO medical_vet (
-                    animal_name, encounter_type, vet_type, vet_name, 
-                    frequency, location
-                )
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """)
-
-            values = (
-                animal_name, encounter_type, 
-                log_data["vet_type"], log_data["vet_name"], 
-                log_data["frequency"], log_data["location"]
-            )
-        
-        # Execute the query with the values
-        cursor.execute(query, values)
-        
-        # Commit the transaction to save the data
-        conn.commit()
-
-        # Close the cursor and connection
-        cursor.close()
-        conn.close()
-
-    except Exception as e:
-        print(f"Error: {e}")
+def add_medslog_main(user_id, datetime, animal_group, individual_name, encounter_type, tied_to_injury, injury_id, animal_sedated, sedation_id, vet_notified, vet_response, meds_given, med_id, med_notes):
+    conn = init_postgres_connection()
+    cursor = conn.cursor()
+    query = """
+    INSERT INTO med_log_main (user_id, datetime, animal_group, individual_name, encounter_type, tied_to_injury, injury_id, animal_sedated, sedation_id, vet_notified, vet_response, meds_given, med_id, med_notes)
+    VALUES (%s, %s, %s, INITCAP(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    """
+    params = (user_id, datetime, animal_group, individual_name, encounter_type, tied_to_injury, injury_id, animal_sedated, sedation_id, vet_notified, vet_response, meds_given, med_id, med_notes)
+    cursor.execute(query, params)
+    conn.commit()
+    conn.close()

@@ -1,6 +1,6 @@
 import streamlit as st
 from Login import login_page
-from utils.medical_utils import submit_medical_log
+from utils.medical_utils import add_injury_log, add_sedation_log, add_medslog, add_medslog_main
 from utils.navbar import navbar
 from streamlit_free_text_select import st_free_text_select
 import uuid
@@ -29,6 +29,8 @@ def medical_log_page():
                 st.stop()
 
         user_id = st.session_state["user_id"]
+        current_time = datetime.datetime.now()
+        formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
 
         if 'form_submitted' in st.session_state and st.session_state.form_submitted:
             st.session_state.animal_key = get_unique_key("animal_select")
@@ -116,13 +118,13 @@ def medical_log_page():
 
             if injury == "Yes":
                 with st.container(border=True):
-                    injury_type = st.selectbox("Type:", ["New", "Old"], index=None, key="injury_type")
+                    injury_type = st.selectbox("Injury Type:", ["New", "Old"], index=None, key="injury_type")
                     injury_description = st.text_area("Injury Description:", key="injury_description")
 
                     if "exam_key" not in st.session_state:
                         st.session_state.exam_key = "exam_select"
                     examination_type = st_free_text_select(
-                        label="Exam Type",
+                        label="Examination Type",
                         options=["PE","VE"],
                         index=None,
                         format_func=lambda x: x.upper(),
@@ -145,11 +147,11 @@ def medical_log_page():
                     if "sed_administration_key" not in st.session_state:
                         st.session_state.sed_administration_key = "sed_admin_select"
                     sed_administration_type = st_free_text_select(
-                        label="Sedation Type",
+                        label="Sedation Administration Method",
                         options=["Oral","Dart Gun", "Hand"],
                         index=None,
                         format_func=lambda x: x.capitalize(),
-                        placeholder="Select or enter Sedatino Administration Method",
+                        placeholder="Select or enter Sedation Administration Method",
                         disabled=False,
                         delay=300,
                         key=st.session_state.sed_administration_key, 
@@ -167,11 +169,16 @@ def medical_log_page():
                     if response_time_dt < time_administered_dt:
                         st.error("❌ 'Time Out' must be **greater** than 'Time In'. Please enter a valid time.")
 
+                    formatted_time_in = time_administered.strftime("%H:%M:%S")
+                    formatted_time_out = response_time.strftime("%H:%M:%S")
+
             #Vet Notified
             vet_notified = st.radio("Vet Notified?", horizontal=True, options=["No", "Yes"], key="vet_notified")
 
             if vet_notified == "Yes":
                 vet_response = st.text_input("Vet Response", key="vet_response")
+            else:
+                vet_response = "None"
             
             #Medication Section
             medication = st.radio("Did you administer Medication?", horizontal=True, options=["No", "Yes"], key="meds_tie")
@@ -184,8 +191,8 @@ def medical_log_page():
                     if "administration_key" not in st.session_state:
                         st.session_state.administration_key = "admin_select"
                     administration_type = st_free_text_select(
-                        label="Exam Type",
-                        options=["Oral","Dart Gun", "IM"],
+                        label="Administration Route",
+                        options=["Oral","Dart Gun"],
                         index=None,
                         format_func=lambda x: x.capitalize(),
                         placeholder="Select or enter Meds Administration Route",
@@ -195,12 +202,85 @@ def medical_log_page():
                         label_visibility="visible",
                     )
 
-                    meds_taken = st.selectbox("Did animal tke medication:", ["Yes", "No"], index=None, key="meds_taken") 
+                    meds_taken = st.selectbox("Did animal take medication:", ["Yes", "No"], index=None, key="meds_taken") 
 
             injury_description = st.text_area("Medical Log Notes and Findings:", key="med_log_notes")
+
+            injury_id = 0
+            sedation_id = 0
+            medication_id = 0
             
             if st.button("Submit Medical Log"):
-                #st.success("Habitat cleaning log submitted successfully!")
+                if not animal_group:
+                    st.error("Please fill out Animal Type before submitting the medical log.")
+                    return
+                if not animal_name:
+                    st.error("Please fill out Animal Name before submitting the medical log.")
+                    return
+                if not encounter_type:
+                    st.error("Please fill out Encounter Type before submitting the medical log.")
+                    return
+                
+                if injury == "Yes":
+                    if not injury_type:
+                        st.error("Please fill out Injury Type.")
+                        return
+                    if not injury_description:
+                        st.error("Please fill out Injury Description.")
+                        return
+                    if not examination_type:
+                        st.error("Please fill out Examination Type.")
+                        return
+                    
+                    injury_id = add_injury_log(user_id, formatted_time, animal_group, animal_name, encounter_type, injury_type, injury_description, examination_type)
+
+                if sedated == "Yes":
+                    if not sedation_medication:
+                        st.error("Please fill out Medication used for Sedation.")
+                        return
+                    if not sed_dose:
+                        st.error("Please fill out Sedation Dosage.")
+                        return
+                    if not sed_administration_type:
+                        st.error("Please fill out Sedation Administration Route.")
+                        return
+                    
+                    sedation_id = add_sedation_log(
+                                        user_id, formatted_time, animal_group, animal_name, 
+                                        encounter_type, sedation_medication, sed_dose, sedation_kit, 
+                                        sed_administration_type, formatted_time_in, formatted_time_out
+                                    )
+                    
+                if medication == "Yes":
+                    if not meds_type:
+                        st.error("Please fill out Medication used.")
+                        return
+                    if not meds_dose:
+                        st.error("Please fill out Medication Dosage.")
+                        return
+                    if not administration_type:
+                        st.error("Please fill out Sedation Administration Route.")
+                        return
+                    if not meds_taken:
+                        st.error("Please fill out animal took the medication.")
+                        return
+                    
+                    medication_id = add_medslog(
+                                        user_id, formatted_time, animal_group, animal_name, encounter_type, 
+                                        meds_type, meds_dose, administration_type, meds_taken
+                                    )
+                    
+                if vet_notified == "Yes":
+                    if not vet_response:
+                        st.error("Please fill out Vet Response.")
+                        return
+                    
+                add_medslog_main(
+                    user_id, formatted_time, animal_group, animal_name, encounter_type, 
+                    injury, injury_id, sedated, sedation_id, 
+                    vet_notified, vet_response, medication, medication_id, injury_description)
+
+                st.success("Habitat cleaning log submitted successfully!")
                 st.session_state.form_submitted = True
                 st.rerun()       
         

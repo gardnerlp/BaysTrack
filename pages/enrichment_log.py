@@ -4,6 +4,7 @@ from utils.navbar import navbar
 from streamlit_free_text_select import st_free_text_select
 import datetime
 import uuid
+from utils.enrichment_utils import add_enrichment_log
 
 def enrichment_log():
     
@@ -29,6 +30,10 @@ def enrichment_log():
                 st.stop()
 
         user_id = st.session_state["user_id"]
+        current_time = datetime.datetime.now()
+        formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
+
+
         # Check if the form was submitted and reset session state if necessary
         if 'form_submitted' in st.session_state and st.session_state.form_submitted:
             # Clear the session state values for the form inputs
@@ -83,7 +88,9 @@ def enrichment_log():
             #st.subheader("Individual Information")
             individual_name = st.text_input("Which Individuals were in the habitat?", key="individual_name")
 
-            enrichment_type = st_free_text_select(label="Select Observation Type", options=["Toys", "Training", "Scent"],
+            if individual_name == "": individual_name = "All"
+
+            enrichment_type = st_free_text_select(label="Select Enrichment Type", options=["Toys", "Training", "Scent"],
                 index=None,
                 format_func=lambda x: x.capitalize(),
                 placeholder="Select or enter the enrichment type",
@@ -109,10 +116,37 @@ def enrichment_log():
             
             #response = st.text_area("Enter Response", key="response")
 
+            formatted_time_in = time_in.strftime("%H:%M:%S")
+            formatted_time_out = time_out.strftime("%H:%M:%S")
+
             if st.button("Submit Enrichment Log"):
-                st.success("Enrichment log submitted successfully!")
+
+                if not animal_group:
+                    st.error("Please fill out Animal Type before submitting the enrichment log.")
+                    return
+                if not observation_type:
+                    st.error("Please select or enter the Observation Type before submitting the enrichment log.")
+                    return
+                if not enrichment_type:
+                    st.error("Please select or enter the Enrichment Type before submitting the enrichment log.")
+                    return
+                if not details:
+                    st.error("Please fill out Enrichment Details before submitting the enrichment log.")
+                    return
                 
-                # Set the flag to trigger the form clearing logic
+                add_enrichment_log(
+                    user_id, 
+                    formatted_time, 
+                    animal_group, 
+                    observation_type, 
+                    individual_name, 
+                    enrichment_type, 
+                    details, 
+                    formatted_time_in, 
+                    formatted_time_out
+                )
+                
+                st.success("Enrichment log submitted successfully!")
                 st.session_state.form_submitted = True
                 st.rerun()
 
