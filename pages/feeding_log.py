@@ -33,7 +33,7 @@ def feeding_log():
         formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
 
         if 'filter_option' not in st.session_state:
-            st.session_state.filter_option = "Individual"
+            st.session_state.filter_option = "Group"
     
         # Check if the form was submitted and reset session state if necessary
         if 'form_submitted' in st.session_state and st.session_state.form_submitted:
@@ -43,12 +43,17 @@ def feeding_log():
             st.session_state["individual_notes"] = ""
 
             st.session_state.animal_key = get_unique_key("animal_select")
-            st.session_state.food_key = get_unique_key("food_select")
-            st.session_state.amount_key = get_unique_key("amount_select")
-
-            #st.session_state.group_key = get_unique_key("group_select")
-            #st.session_state.group_food_key = get_unique_key("group_food_select")
-            #st.session_state.group_amount_key = get_unique_key("group_amount_select")
+            #st.session_state.food_key = get_unique_key("food_select")
+            st.session_state["food_key"] = ""
+            
+            st.session_state["nb_amount_fed"] = None
+            st.session_state["chkn_amount_fed"] = None
+            st.session_state["prey_amount_fed"] = None
+            st.session_state["fruits_amount_fed"] = None
+            st.session_state["veg_amount_fed"] = None
+            st.session_state["fish_amount_fed"] = None
+            st.session_state["mazuri_amount_fed"] = None
+            st.session_state["amount_fed"] = None
 
             st.session_state.observation_key = get_unique_key("observation_select")
 
@@ -58,7 +63,7 @@ def feeding_log():
             
             st.session_state["meds_added"] = None
             st.session_state["med_type"] = ""
-            st.session_state["dose"] = ""
+            st.session_state["dose"] = 0
             
             # Reset the form submission flag to prevent continuous resetting
             st.session_state.form_submitted = False
@@ -73,7 +78,7 @@ def feeding_log():
             st.title("Feeding Log")
 
         with col2:
-            filter_option = st.radio("Feeding Type", ["Individual", "Group"], horizontal=True, index=["Individual", "Group"].index(st.session_state.filter_option))
+            filter_option = st.radio("Feeding Type", ["Group", "Individual"], horizontal=True, index=["Group", "Individual"].index(st.session_state.filter_option))
  
         with st.container(border=True): 
             if filter_option == "Individual":
@@ -83,12 +88,9 @@ def feeding_log():
             
             if "animal_key" not in st.session_state:
                 st.session_state.animal_key = "animal_select"
-            if "food_key" not in st.session_state:
-                st.session_state.food_key = "food_select"
-            if "amount_key" not in st.session_state:
-                st.session_state.amount_key = "amount_select"
-            if "observation_key" not in st.session_state:    
-                st.session_state.observation_key = "observation_select"
+            
+            # if "food_key" not in st.session_state:
+            #     st.session_state.food_key = "food_select"              
             
             animal_group = st_free_text_select(label="Animal Type *", options=["Bobcat","Deer","Red Fox","River Otter","Wolf"],
                 index=None,
@@ -105,25 +107,41 @@ def feeding_log():
             else:
                 individual_name = "All"
             
-            food_type = st_free_text_select(label="Select Food Type *", options=["Chicken", "Whole Prey", "Fruits", "Fresh Vegetables"],
-                index=None,
-                format_func=lambda x: x.capitalize(),
-                placeholder="Select or enter a food",
-                disabled=False,
-                delay=300,
-                label_visibility="visible",
-                key=st.session_state.food_key,
-            )
-            
-            amount_fed = st_free_text_select(label="Select Amount Fed *", options=["0.25lb","0.5lb","0.75lb","1lb","1.25lb","1.5lb","1.75lb","2lb","5lb","10lb","15lb","20lb"],
-                index=None,
-                format_func=lambda x: x.lower(),
-                placeholder="Select or enter the amount fed",
-                disabled=False,
-                delay=300,
-                label_visibility="visible",
-                key=st.session_state.amount_key,
-            )
+            # food_type = st_free_text_select(label="Select Food Type *", options=["Chicken", "Whole Prey", "Fruits", "Fresh Vegetables"],
+            #     index=None,
+            #     format_func=lambda x: x.capitalize(),
+            #     placeholder="Select or enter a food",
+            #     disabled=False,
+            #     delay=300,
+            #     label_visibility="visible",
+            #     key=st.session_state.food_key,
+            # )
+
+            col1, col2 = st.columns([1, 0.5])
+
+            with col1:
+                with st.container(border=True):
+                    st.write("What did you feed? (Weight per animal in lbs)")
+
+                    nb_amount_fed = st.number_input("Nebraska Brand", value=None, placeholder="Enter the amount fed...", max_value=20, key="nb_amount_fed")
+
+                    chicken_amount_fed = st.number_input("Chicken", value=None, placeholder="Enter the amount fed...", max_value=20, key="chicken_amount_fed")
+
+                    prey_amount_fed = st.number_input("Whole Prey", value=None, placeholder="Enter the amount fed...", max_value=20, key="prey_amount_fed")
+
+                    fruits_amount_fed = st.number_input("Fresh Fruits", value=None, placeholder="Enter the amount fed...", max_value=20, key="fruits_amount_fed")
+
+                    veg_amount_fed = st.number_input("Fresh Vegetables", value=None, placeholder="Enter the amount fed...", max_value=20, key="veg_amount_fed")
+
+                    fish_amount_fed = st.number_input("Fish", value=None, placeholder="Enter the amount fed...", max_value=20, key="fish_amount_fed")
+
+                    mazuri_amount_fed = st.number_input("Mazuri Omnivore", value=None, placeholder="Enter the amount fed...", max_value=20, key="mazuri_amount_fed")
+
+                    amount_fed = st.number_input("Other Food", value=None, placeholder="Enter the amount fed...", max_value=20, key="amount_fed")
+
+                    if amount_fed:
+                        food_type = st.text_input("Enter Other Food given", key="food_key") 
+
 
             observation_type = st_free_text_select(label="Select Observation Type *", options=["DVE","DPE"],
                 index=None,
@@ -137,18 +155,19 @@ def feeding_log():
             
             leftover_food = st.text_input("Enter Leftover Food", key="leftover_food")   
             
-            if leftover_food == "": leftover_food = "0lb"
+            if leftover_food == "": leftover_food = "0"
 
             if animal_group == "Deer":
-                deer_feed_scoops = st.number_input("Enter Number of Deer Feed Scoops", min_value=0, step=1, key="deer_feed_scoops", value=None)
+                deer_feed_scoops = st.selectbox("Deer Feed Scoops", ["3","3.5","4","4.5","5","5.5","6"], key="deer_feed_scoops", index=None)
+                #st.number_input("Enter Number of Deer Feed Scoops", min_value=0, step=1, key="deer_feed_scoops", value=None)
             else:
                 deer_feed_scoops = 0
 
-            meds_added = st.selectbox("Medication Added to Food", ["Yes", "No"], key="meds_added", index=None)
+            meds_added = st.selectbox("Was Medication Added to Food?", ["Yes", "No"], key="meds_added", index=None)
             
             if meds_added == "Yes":
                 med_type = st.text_input("Enter Medication Type *", key="med_type")
-                dose = st.text_input("Enter Medication Dosage *", key="dose")
+                dose = st.number_input("Enter Medication Dosage *", value=None, key="dose")
                 encounter_type = "Feeding"
                 administration_type = "Oral"
             else:
@@ -162,7 +181,7 @@ def feeding_log():
 
             med_log_id = 0
 
-            submitted = st.button("Submit Individual Feeding")                
+            submitted = st.button("Submit Feeding Log")                
             
             if submitted:
                 if filter_option == "Individual" and not individual_name:
@@ -172,12 +191,35 @@ def feeding_log():
                 if not animal_group:
                     st.error("Please fill out Animal Type before submitting the feeding log.")
                     return
-                if not food_type:
-                    st.error("Please fill out Food Type before submitting the feeding log.")
+                
+                if not amount_fed and not nb_amount_fed and not chicken_amount_fed and not prey_amount_fed and not fruits_amount_fed and not veg_amount_fed and not fish_amount_fed and not mazuri_amount_fed:
+                    st.error("Please fill out Amount Fed for any food type before submitting the feeding log.")
                     return
+                
+                if not nb_amount_fed:
+                    nb_amount_fed = "0"
+                if not chicken_amount_fed:
+                    chicken_amount_fed = "0"
+                if not prey_amount_fed:
+                    prey_amount_fed = "0"
+                if not fruits_amount_fed:
+                    fruits_amount_fed = "0"
+                if not veg_amount_fed:
+                    veg_amount_fed = "0"
+                if not fish_amount_fed:
+                    fish_amount_fed = "0"
+                if not mazuri_amount_fed:
+                    mazuri_amount_fed = "0"
                 if not amount_fed:
-                    st.error("Please fill out Amount Fed before submitting the feeding log.")
-                    return
+                    amount_fed = "0"
+                    food_type = "No Other Food Type"
+                else:
+                    if not food_type:
+                        st.error("Please fill out Food Type before submitting the feeding log.")
+                        return
+                
+                total_food_quantity = float(nb_amount_fed) + float(chicken_amount_fed) + float(prey_amount_fed) + float(fruits_amount_fed) + float(veg_amount_fed) + float(fish_amount_fed) + float(mazuri_amount_fed) + float(amount_fed)
+                
                 if not observation_type:
                     st.error("Please fill out Observation Type before submitting the feeding log.")
                     return
@@ -204,20 +246,10 @@ def feeding_log():
                     )
 
                 # Add feeding log (med_log_id is None if no meds were added)
-                add_feedinglog(
-                    user_id, 
-                    formatted_time, 
-                    animal_group, 
-                    individual_name, 
-                    food_type, 
-                    amount_fed, 
-                    observation_type, 
-                    leftover_food, 
-                    deer_feed_scoops, 
-                    meds_added, 
-                    individual_notes,
-                    med_log_id
-                )
+
+                
+                add_feedinglog(user_id, formatted_time, animal_group, individual_name, food_type, amount_fed, observation_type, leftover_food, deer_feed_scoops, meds_added, individual_notes, med_log_id,
+                    nb_amount_fed, chicken_amount_fed, prey_amount_fed, fruits_amount_fed, veg_amount_fed, fish_amount_fed, mazuri_amount_fed, total_food_quantity)
 
                 st.success("Individual feeding log submitted successfully!")
                 st.session_state.filter_option = filter_option
@@ -230,3 +262,146 @@ def get_unique_key(base_key):
           
 if __name__ == "__main__":
     feeding_log()
+
+
+
+#Alternate code for Food amount
+
+            # st.session_state.nb_amount_key = get_unique_key("nb_amount_select") 
+            # st.session_state.chkn_amount_key = get_unique_key("chkn_amount_select")  
+            # st.session_state.prey_amount_key = get_unique_key("prey_amount_select")  
+            # st.session_state.fruits_amount_key = get_unique_key("fruits_amount_select") 
+            # st.session_state.veg_amount_key = get_unique_key("veg_amount_select")  
+            # st.session_state.fish_amount_key = get_unique_key("fish_amount_select") 
+            # st.session_state.mazuri_amount_key = get_unique_key("mazuri_amount_select") 
+            # st.session_state.amount_key = get_unique_key("amount_select")
+
+
+            # if "food_key" not in st.session_state:
+            #     st.session_state.food_key = "food_select"
+            
+            # if "observation_key" not in st.session_state:    
+            #     st.session_state.observation_key = "observation_select"
+
+            # if "nb_amount_key" not in st.session_state:
+            #     st.session_state.nb_amount_key = "nb_amount_select" 
+
+            # if "chkn_amount_key" not in st.session_state:
+            #     st.session_state.chkn_amount_key = "chkn_amount_select"  
+
+            # if "prey_amount_key" not in st.session_state:
+            #     st.session_state.prey_amount_key = "prey_amount_select"  
+
+            # if "fruits_amount_key" not in st.session_state:
+            #     st.session_state.fruits_amount_key = "fruits_amount_select" 
+                
+            # if "veg_amount_key" not in st.session_state:
+            #     st.session_state.veg_amount_key = "veg_amount_select"  
+
+            # if "fish_amount_key" not in st.session_state:
+            #     st.session_state.fish_amount_key = "fish_amount_select" 
+
+            # if "mazuri_amount_key" not in st.session_state:
+            #     st.session_state.mazuri_amount_key = "mazuri_amount_select" 
+            
+            # if "amount_key" not in st.session_state:
+            #     st.session_state.amount_key = "amount_select"  
+
+            # food_type = st_free_text_select(label="Select Food Type *", options=["Chicken", "Whole Prey", "Fruits", "Fresh Vegetables"],
+            #     index=None,
+            #     format_func=lambda x: x.capitalize(),
+            #     placeholder="Select or enter a food",
+            #     disabled=False,
+            #     delay=300,
+            #     label_visibility="visible",
+            #     key=st.session_state.food_key,
+            # )
+
+            # col1, col2 = st.columns([1, 0.5])
+
+            # with col1:
+            #     with st.container(border=True):
+            #         st.write("What did you feed? (Weight per animal in lbs)")
+
+            #         nb_amount_fed = st_free_text_select(label="Nebraska Brand", options=["0.25","0.5","0.75","1","1.25","1.5","1.75","2","5","10","15","20"],
+            #             index=None,
+            #             format_func=lambda x: x.lower(),
+            #             placeholder="Select or enter the amount fed",
+            #             disabled=False,
+            #             delay=300,
+            #             label_visibility="visible",
+            #             key=st.session_state.nb_amount_key,
+            #         )
+
+            #         chicken_amount_fed = st_free_text_select(label="Chicken", options=["0.25","0.5","0.75","1","1.25","1.5","1.75","2","5","10","15","20"],
+            #             index=None,
+            #             format_func=lambda x: x.lower(),
+            #             placeholder="Select or enter the amount fed",
+            #             disabled=False,
+            #             delay=300,
+            #             label_visibility="visible",
+            #             key=st.session_state.chkn_amount_key,
+            #         )
+
+            #         prey_amount_fed = st_free_text_select(label="Whole Prey", options=["0.25","0.5","0.75","1","1.25","1.5","1.75","2","5","10","15","20"],
+            #             index=None,
+            #             format_func=lambda x: x.lower(),
+            #             placeholder="Select or enter the amount fed",
+            #             disabled=False,
+            #             delay=300,
+            #             label_visibility="visible",
+            #             key=st.session_state.prey_amount_key,
+            #         )
+
+            #         fruits_amount_fed = st_free_text_select(label="Fresh Fruits", options=["0.25","0.5","0.75","1","1.25","1.5","1.75","2","5","10","15","20"],
+            #             index=None,
+            #             format_func=lambda x: x.lower(),
+            #             placeholder="Select or enter the amount fed",
+            #             disabled=False,
+            #             delay=300,
+            #             label_visibility="visible",
+            #             key=st.session_state.fruits_amount_key,
+            #         )
+
+            #         veg_amount_fed = st_free_text_select(label="Fresh Vegetables", options=["0.25","0.5","0.75","1","1.25","1.5","1.75","2","5","10","15","20"],
+            #             index=None,
+            #             format_func=lambda x: x.lower(),
+            #             placeholder="Select or enter the amount fed",
+            #             disabled=False,
+            #             delay=300,
+            #             label_visibility="visible",
+            #             key=st.session_state.veg_amount_key,
+            #         )
+
+            #         fish_amount_fed = st_free_text_select(label="Fish", options=["0.25","0.5","0.75","1","1.25","1.5","1.75","2","5","10","15","20"],
+            #             index=None,
+            #             format_func=lambda x: x.lower(),
+            #             placeholder="Select or enter the amount fed",
+            #             disabled=False,
+            #             delay=300,
+            #             label_visibility="visible",
+            #             key=st.session_state.fish_amount_key,
+            #         )
+
+            #         mazuri_amount_fed = st_free_text_select(label="Mazuri Omnivore", options=["0.25","0.5","0.75","1","1.25","1.5","1.75","2","5","10","15","20"],
+            #             index=None,
+            #             format_func=lambda x: x.lower(),
+            #             placeholder="Select or enter the amount fed",
+            #             disabled=False,
+            #             delay=300,
+            #             label_visibility="visible",
+            #             key=st.session_state.mazuri_amount_key,
+            #         )
+
+            #         amount_fed = st_free_text_select(label="Other Food", options=["0.25","0.5","0.75","1","1.25","1.5","1.75","2","5","10","15","20"],
+            #             index=None,
+            #             format_func=lambda x: x.lower(),
+            #             placeholder="Select or enter the amount fed",
+            #             disabled=False,
+            #             delay=300,
+            #             label_visibility="visible",
+            #             key=st.session_state.amount_key,
+            #         )
+
+            #         if amount_fed:
+            #             food_type = st.text_input("Enter Other Food given", key="food_key") 

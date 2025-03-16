@@ -41,6 +41,7 @@ def enrichment_log():
             st.session_state["details"] = ""
             st.session_state["time_in"] = datetime.datetime.now().time()
             st.session_state["time_out"] = datetime.datetime.now().time()
+            st.session_state["enrichment_response"] = None
 
             st.session_state.animal_key = get_unique_key("animal_select")
             st.session_state.observation_key = get_unique_key("observation_select")
@@ -73,24 +74,14 @@ def enrichment_log():
                 delay=300,
                 key=st.session_state.animal_key, 
                 label_visibility="visible",
-            )
-
-            observation_type = st_free_text_select(label="Select Observation Type", options=["DVE","DPE"],
-                index=None,
-                format_func=lambda x: x.upper(),
-                placeholder="Select or enter the observation",
-                disabled=False,
-                delay=300,
-                label_visibility="visible",
-                key=st.session_state.observation_key,
-            )    
+            )   
                 
             #st.subheader("Individual Information")
-            individual_name = st.text_input("Which Individuals were in the habitat?", key="individual_name")
+            individual_name = st.text_input("Which Individuals were in the habitat? (If 'All' then leave it empty)", key="individual_name")
 
             if individual_name == "": individual_name = "All"
 
-            enrichment_type = st_free_text_select(label="Select Enrichment Type", options=["Toys", "Training", "Scent"],
+            enrichment_type = st_free_text_select(label="Select Enrichment Type", options=["Toys", "Training", "Food", "Interaction (Play)"],
                 index=None,
                 format_func=lambda x: x.capitalize(),
                 placeholder="Select or enter the enrichment type",
@@ -119,13 +110,22 @@ def enrichment_log():
             formatted_time_in = time_in.strftime("%H:%M:%S")
             formatted_time_out = time_out.strftime("%H:%M:%S")
 
+            enrichment_response = st.selectbox("How did the animal respond to the Enrichment with 1 being 'No Response' and 5 being 'Fully Engaged'", ["1","2","3","4","5"], key="enrichment_response", index=None)
+
+            observation_type = st_free_text_select(label="Select Observation Type", options=["DVE","DPE"],
+                index=None,
+                format_func=lambda x: x.upper(),
+                placeholder="Select or enter the observation",
+                disabled=False,
+                delay=300,
+                label_visibility="visible",
+                key=st.session_state.observation_key,
+            ) 
+
             if st.button("Submit Enrichment Log"):
 
                 if not animal_group:
                     st.error("Please fill out Animal Type before submitting the enrichment log.")
-                    return
-                if not observation_type:
-                    st.error("Please select or enter the Observation Type before submitting the enrichment log.")
                     return
                 if not enrichment_type:
                     st.error("Please select or enter the Enrichment Type before submitting the enrichment log.")
@@ -133,17 +133,24 @@ def enrichment_log():
                 if not details:
                     st.error("Please fill out Enrichment Details before submitting the enrichment log.")
                     return
+                if not enrichment_response:
+                    st.error("Please select the Enrichment Response before submitting the enrichment log.")
+                    return
+                if not observation_type:
+                    st.error("Please select or enter the Observation Type before submitting the enrichment log.")
+                    return
                 
                 add_enrichment_log(
                     user_id, 
                     formatted_time, 
                     animal_group, 
-                    observation_type, 
+                    enrichment_response, 
                     individual_name, 
                     enrichment_type, 
                     details, 
                     formatted_time_in, 
-                    formatted_time_out
+                    formatted_time_out,
+                    observation_type
                 )
                 
                 st.success("Enrichment log submitted successfully!")

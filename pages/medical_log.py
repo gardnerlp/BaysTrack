@@ -43,7 +43,8 @@ def medical_log_page():
             st.session_state.exam_key = get_unique_key("exam_select")
 
             st.session_state.sedation = "No"
-            st.session_state["sedation_medication"] = ""
+            #st.session_state["sedation_medication"] = ""
+            st.session_state.sedation_medication_key = get_unique_key("sedation_medication_select")
             st.session_state["sed_dose"] = ""
             st.session_state["sedation_kit"] = ""
             st.session_state.sed_administration_key = get_unique_key("sed_admin_select")
@@ -54,7 +55,8 @@ def medical_log_page():
             st.session_state["vet_response"] = ""
 
             st.session_state.meds_tie = "No"
-            st.session_state["meds_type"] = ""
+            #st.session_state["meds_type"] = ""
+            st.session_state.meds_type_key = get_unique_key("meds_type_select")
             st.session_state["med_dose"] = ""
             st.session_state.encounter_key = get_unique_key("encounter_select")
             st.session_state["meds_taken"] = None
@@ -144,13 +146,35 @@ def medical_log_page():
                         key=st.session_state.exam_key, 
                         label_visibility="visible",
                     )
+                    #Vet Notified
+                    vet_notified = st.radio("Vet Notified?", horizontal=True, options=["No", "Yes"], key="vet_notified")
+
+                    if vet_notified == "Yes":
+                        vet_response = st.text_input("Vet Response", key="vet_response")
+                    else:
+                        vet_response = "None"
 
             #Animal Sedation
             sedated = st.radio("Was Animal Sedated?", horizontal=True, options=["No", "Yes"], key="sedation")
 
             if sedated == "Yes":
                 with st.container(border=True):
-                    sedation_medication = st.text_input("Sedation Medication used", key="sedation_medication")
+                    
+                    #sedation_medication = st.text_input("Sedation Medication used", key="sedation_medication")
+                    if "sedation_medication_key" not in st.session_state:
+                        st.session_state.sedation_medication_key = "sedation_medication_select"
+                    sedation_medication = st_free_text_select(
+                        label="Sedation Medication Used",
+                        options=["BAM Sedation","BAM Reversal"],
+                        index=None,
+                        format_func=lambda x: x.capitalize(),
+                        placeholder="Select or enter Sedation Medication Used",
+                        disabled=False,
+                        delay=300,
+                        key=st.session_state.sedation_medication_key, 
+                        label_visibility="visible",
+                    )
+                    
                     sed_dose = st.text_input("Sedation Dose:", key="sed_dose")
                     sedation_kit = st.text_input("Sedation Kit used", key="sedation_kit")
 
@@ -182,29 +206,37 @@ def medical_log_page():
                     formatted_time_in = time_administered.strftime("%H:%M:%S")
                     formatted_time_out = response_time.strftime("%H:%M:%S")
 
-            #Vet Notified
-            vet_notified = st.radio("Vet Notified?", horizontal=True, options=["No", "Yes"], key="vet_notified")
-
-            if vet_notified == "Yes":
-                vet_response = st.text_input("Vet Response", key="vet_response")
-            else:
-                vet_response = "None"
             
             #Medication Section
             medication = st.radio("Did you administer Medication?", horizontal=True, options=["No", "Yes"], key="meds_tie")
 
             if medication == "Yes":
                 with st.container(border=True):
-                    meds_type = st.text_input("Medication Type:", key="meds_type")
+                    #meds_type = st.text_input("Medication Type:", key="meds_type")
+                    
+                    if "meds_type_key" not in st.session_state:
+                        st.session_state.meds_type_key = "meds_type_select"
+                    meds_type = st_free_text_select(
+                        label="Medication Type:",
+                        options=["Meloxicam","Cephalexin", "Gabapentin", "Bravecto", "Intercepter"],
+                        index=None,
+                        format_func=lambda x: x.capitalize(),
+                        placeholder="Select or enter Medication Type",
+                        disabled=False,
+                        delay=300,
+                        key=st.session_state.meds_type_key, 
+                        label_visibility="visible",
+                    )
+
                     meds_dose = st.text_input("Medication Dose:", key="med_dose")
 
                     if "administration_key" not in st.session_state:
                         st.session_state.administration_key = "admin_select"
                     administration_type = st_free_text_select(
                         label="Administration Route",
-                        options=["Oral","Dart Gun"],
+                        options=["Oral", "IM", "Dart Gun"],
                         index=None,
-                        format_func=lambda x: x.capitalize(),
+                        format_func=lambda x: x.upper(),
                         placeholder="Select or enter Meds Administration Route",
                         disabled=False,
                         delay=300,
@@ -324,7 +356,7 @@ def medical_log_page():
                 st.session_state.check_key = "check_select"
             vet_check = st_free_text_select(
                 label="Vet Check Type:",
-                options=["Yearly Assessment","Quaterly Assessment","Fecal Check","Injury Check"],
+                options=["Yearly Assessment","Quaterly Assessment","Operation","Injury Check"],
                 index=None,
                 format_func=lambda x: x.capitalize(),
                 placeholder="Select or enter Vet Check Type",

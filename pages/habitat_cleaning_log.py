@@ -38,11 +38,12 @@ def habitat_cleaning_log():
             
             st.session_state["habitat_name"] = None
             st.session_state["cleaning_type"] = None
-            st.session_state["individual_notes"] = ""
+            #st.session_state["individual_notes"] = ""
             st.session_state["findings"] = ""
             st.session_state.animal_key = get_unique_key("animal_select")
             st.session_state.observation_key = get_unique_key("observation_select")
             st.session_state.habitat_key = get_unique_key("habitat_select")
+            st.session_state.description_key = get_unique_key("description_select")
             
             st.session_state.form_submitted = False
             st.rerun() 
@@ -62,6 +63,8 @@ def habitat_cleaning_log():
                 st.session_state.observation_key = "observation_select"
             if "habitat_key" not in st.session_state:    
                 st.session_state.habitat_key = "habitat_select"
+            if "description_key" not in st.session_state:    
+                st.session_state.description_key = "description_select"
             
             animal_group = st_free_text_select(
                 label="Animal Type",
@@ -73,6 +76,17 @@ def habitat_cleaning_log():
                 delay=300,
                 key=st.session_state.animal_key, 
                 label_visibility="visible",
+            )
+
+            # description = st.text_area("Description of Cleaning", key="individual_notes")
+            description = st_free_text_select(label="Description of Cleaning", options=["Pad cleaning", "Water change", "Pond cleaning", "Waste removal", "Brush removal", "Fence maintenance",],
+                index=None,
+                format_func=lambda x: x.capitalize(),
+                placeholder="Select or enter the Habitat",
+                disabled=False,
+                delay=300,
+                label_visibility="visible",
+                key=st.session_state.description_key,
             )
 
             observation_type = st_free_text_select(label="Select Observation Type", options=["DVE","DPE"],
@@ -98,7 +112,7 @@ def habitat_cleaning_log():
             #cleaning_type = st.selectbox("Select Cleaning Type", ["Deep Clean", "Routine Clean", "Spot Clean"], key="cleaning_type", index=None)
 
             findings = st.text_input("Findings", key="findings") #if findings == "": findings = "NSF"
-            description = st.text_area("Description of Cleaning", key="individual_notes")
+            
         
             if st.button("Submit Habitat Cleaning Log"):
                 if not animal_group:
