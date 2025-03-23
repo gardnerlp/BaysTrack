@@ -30,15 +30,16 @@ def add_sedation_log(user_id, datetime, animal_group, individual_name, encounter
     conn.close()
     return sedation_id
 
-def add_medslog(user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken):
+def add_medslog(user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken,Meloxicam,Cephalexin,Gabapentin,Bravecto,Intercepter,Meloxicam_dose,Cephalexin_dose,Gabapentin_dose,Bravecto_dose,Intercepter_dose,IfOther):
     conn = init_postgres_connection()
     cursor = conn.cursor()
     query = """
-    INSERT INTO med_log (user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken)
-    VALUES (%s, %s, %s, INITCAP(%s), %s, %s, %s, %s, %s)
+    INSERT INTO med_log (user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken,
+    Meloxicam,Cephalexin,Gabapentin,Bravecto,Intercepter,Meloxicam_dose,Cephalexin_dose,Gabapentin_dose,Bravecto_dose,Intercepter_dose,IfOther)
+    VALUES (%s, %s, %s, INITCAP(%s), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING id;
     """
-    params = (user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken)
+    params = (user_id, datetime, animal_group, individual_name, encounter_type, med_type, dose, administration_route, meds_taken, Meloxicam,Cephalexin,Gabapentin,Bravecto,Intercepter,Meloxicam_dose,Cephalexin_dose,Gabapentin_dose,Bravecto_dose,Intercepter_dose,IfOther)
     cursor.execute(query, params)
     med_log_id = cursor.fetchone()[0] 
     conn.commit()

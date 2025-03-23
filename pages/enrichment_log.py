@@ -81,7 +81,7 @@ def enrichment_log():
 
             if individual_name == "": individual_name = "All"
 
-            enrichment_type = st_free_text_select(label="Select Enrichment Type", options=["Toys", "Training", "Food", "Interaction (Play)"],
+            enrichment_type = st_free_text_select(label="Select Enrichment Type", options=["Toys", "Training", "Food", "Interaction (Play)", "Bones"],
                 index=None,
                 format_func=lambda x: x.capitalize(),
                 placeholder="Select or enter the enrichment type",
@@ -156,6 +156,7 @@ def enrichment_log():
                 st.success("Enrichment log submitted successfully!")
                 st.session_state.form_submitted = True
                 st.rerun()
+                
 
 def get_unique_key(base_key):
         return f"{base_key}_{uuid.uuid4().hex[:6]}"

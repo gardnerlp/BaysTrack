@@ -88,6 +88,9 @@ def feeding_log():
             
             if "animal_key" not in st.session_state:
                 st.session_state.animal_key = "animal_select"
+
+            if "observation_key" not in st.session_state:
+                st.session_state.observation_key = "observation_select"
             
             # if "food_key" not in st.session_state:
             #     st.session_state.food_key = "food_select"              
@@ -117,32 +120,37 @@ def feeding_log():
             #     key=st.session_state.food_key,
             # )
 
-            col1, col2 = st.columns([1, 0.5])
+            st.markdown("<hr style='margin:4px 0;'>", unsafe_allow_html=True)
+            st.write("What did you feed? (Weight per animal in lbs)")
+            col1, col2 = st.columns([1, 1])
 
             with col1:
                 with st.container(border=True):
-                    st.write("What did you feed? (Weight per animal in lbs)")
+                    
+                    nb_amount_fed = st.number_input("Nebraska Brand", value=None, placeholder="Enter the amount fed...", min_value=0, max_value=20, key="nb_amount_fed")
 
-                    nb_amount_fed = st.number_input("Nebraska Brand", value=None, placeholder="Enter the amount fed...", max_value=20, key="nb_amount_fed")
+                    chicken_amount_fed = st.number_input("Chicken", value=None, placeholder="Enter the amount fed...", min_value=0, max_value=20, key="chicken_amount_fed")
 
-                    chicken_amount_fed = st.number_input("Chicken", value=None, placeholder="Enter the amount fed...", max_value=20, key="chicken_amount_fed")
+                    prey_amount_fed = st.number_input("Whole Prey", value=None, placeholder="Enter the amount fed...", min_value=0, max_value=20, key="prey_amount_fed")
 
-                    prey_amount_fed = st.number_input("Whole Prey", value=None, placeholder="Enter the amount fed...", max_value=20, key="prey_amount_fed")
+                    fruits_amount_fed = st.number_input("Fresh Fruits", value=None, placeholder="Enter the amount fed...", min_value=0, max_value=20, key="fruits_amount_fed")
 
-                    fruits_amount_fed = st.number_input("Fresh Fruits", value=None, placeholder="Enter the amount fed...", max_value=20, key="fruits_amount_fed")
+            with col2:
+                with st.container(border=True):
 
-                    veg_amount_fed = st.number_input("Fresh Vegetables", value=None, placeholder="Enter the amount fed...", max_value=20, key="veg_amount_fed")
+                    veg_amount_fed = st.number_input("Fresh Vegetables", value=None, placeholder="Enter the amount fed...", min_value=0, max_value=20, key="veg_amount_fed")
 
-                    fish_amount_fed = st.number_input("Fish", value=None, placeholder="Enter the amount fed...", max_value=20, key="fish_amount_fed")
+                    fish_amount_fed = st.number_input("Fish", value=None, placeholder="Enter the amount fed...", min_value=0, max_value=20, key="fish_amount_fed")
 
-                    mazuri_amount_fed = st.number_input("Mazuri Omnivore", value=None, placeholder="Enter the amount fed...", max_value=20, key="mazuri_amount_fed")
+                    mazuri_amount_fed = st.number_input("Mazuri Omnivore", value=None, placeholder="Enter the amount fed...", min_value=0, max_value=20, key="mazuri_amount_fed")
 
-                    amount_fed = st.number_input("Other Food", value=None, placeholder="Enter the amount fed...", max_value=20, key="amount_fed")
+                    amount_fed = st.number_input("Other Food", value=None, placeholder="Enter the amount fed...", min_value=0, max_value=20, key="amount_fed")
 
                     if amount_fed:
-                        food_type = st.text_input("Enter Other Food given", key="food_key") 
+                        food_type = st.text_input('What "Other Food" were given?', key="food_key")
 
 
+            st.write("---")
             observation_type = st_free_text_select(label="Select Observation Type *", options=["DVE","DPE"],
                 index=None,
                 format_func=lambda x: x.upper(),

@@ -38,12 +38,19 @@ def habitat_cleaning_log():
             
             st.session_state["habitat_name"] = None
             st.session_state["cleaning_type"] = None
-            #st.session_state["individual_notes"] = ""
+            st.session_state["individual_notes"] = ""
             st.session_state["findings"] = ""
             st.session_state.animal_key = get_unique_key("animal_select")
             st.session_state.observation_key = get_unique_key("observation_select")
             st.session_state.habitat_key = get_unique_key("habitat_select")
-            st.session_state.description_key = get_unique_key("description_select")
+            # st.session_state.description_key = get_unique_key("description_select")
+
+            st.session_state.pad_cleaning = "No"
+            st.session_state.water_change = "No"
+            st.session_state.pond_cleaning = "No"
+            st.session_state.waste_removal = "No"
+            st.session_state.brush_removal = "No"
+            st.session_state.fence_maintenance = "No"
             
             st.session_state.form_submitted = False
             st.rerun() 
@@ -63,8 +70,8 @@ def habitat_cleaning_log():
                 st.session_state.observation_key = "observation_select"
             if "habitat_key" not in st.session_state:    
                 st.session_state.habitat_key = "habitat_select"
-            if "description_key" not in st.session_state:    
-                st.session_state.description_key = "description_select"
+            # if "description_key" not in st.session_state:    
+            #     st.session_state.description_key = "description_select"
             
             animal_group = st_free_text_select(
                 label="Animal Type",
@@ -78,16 +85,34 @@ def habitat_cleaning_log():
                 label_visibility="visible",
             )
 
-            # description = st.text_area("Description of Cleaning", key="individual_notes")
-            description = st_free_text_select(label="Description of Cleaning", options=["Pad cleaning", "Water change", "Pond cleaning", "Waste removal", "Brush removal", "Fence maintenance",],
-                index=None,
-                format_func=lambda x: x.capitalize(),
-                placeholder="Select or enter the Habitat",
-                disabled=False,
-                delay=300,
-                label_visibility="visible",
-                key=st.session_state.description_key,
-            )
+            col1, col2 = st.columns([1, 0.7])
+
+            with col1:
+                pad_cleaning = st.radio("Pad Cleaning", horizontal=True, options=["No", "Yes"], key="pad_cleaning")
+
+                water_change = st.radio("Water Change", horizontal=True, options=["No", "Yes"], key="water_change")
+
+                pond_cleaning = st.radio("Pond Cleaning", horizontal=True, options=["No", "Yes"], key="pond_cleaning")
+
+                description = st.text_input("Other:", key="individual_notes")
+
+            with col2:
+                waste_removal = st.radio("Waste Removal", horizontal=True, options=["No", "Yes"], key="waste_removal")
+
+                brush_removal = st.radio("Brush Removal", horizontal=True, options=["No", "Yes"], key="brush_removal")
+
+                fence_maintenance = st.radio("Fence Maintenance", horizontal=True, options=["No", "Yes"], key="fence_maintenance")
+
+            
+            # description = st_free_text_select(label="Description of Cleaning", options=["Pad cleaning", "Water change", "Pond cleaning", "Waste removal", "Brush removal", "Fence maintenance",],
+            #     index=None,
+            #     format_func=lambda x: x.capitalize(),
+            #     placeholder="Select or enter the Habitat",
+            #     disabled=False,
+            #     delay=300,
+            #     label_visibility="visible",
+            #     key=st.session_state.description_key,
+            # )
 
             observation_type = st_free_text_select(label="Select Observation Type", options=["DVE","DPE"],
                 index=None,
@@ -124,11 +149,15 @@ def habitat_cleaning_log():
                 if not habitat_name:
                     st.error("Please select or enter Habitat Name before submitting the habitat log.")
                     return
-                if not description:
-                    st.error("Please enter Cleaning Description before submitting the habitat log.")
+                if not description and pad_cleaning == "No" and water_change == "No" and pond_cleaning == "No" and waste_removal == "No" and brush_removal == "No" and fence_maintenance == "No":
+                    st.error("Please choose a cleaning activity or enter cleaning Description before submitting the habitat log.")
                     return
+                if not description:
+                    description = "None"
+                if not findings:
+                    findings = "NSF"
                 
-                add_habitat_cleaning_log(user_id, formatted_time, animal_group, observation_type, habitat_name, findings, description)
+                add_habitat_cleaning_log(user_id, formatted_time, animal_group, observation_type, habitat_name, findings, description, pad_cleaning, water_change, pond_cleaning, waste_removal, brush_removal, fence_maintenance)
 
                 st.success("Habitat cleaning log submitted successfully!")
                 st.session_state.form_submitted = True

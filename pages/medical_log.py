@@ -55,8 +55,20 @@ def medical_log_page():
             st.session_state["vet_response"] = ""
 
             st.session_state.meds_tie = "No"
-            #st.session_state["meds_type"] = ""
-            st.session_state.meds_type_key = get_unique_key("meds_type_select")
+            st.session_state["Meloxicam"] = None
+            st.session_state["Cephalexin"] = None
+            st.session_state["Gabapentin"] = None
+            st.session_state["Bravecto"] = None
+            st.session_state["Intercepter"] = None
+
+            st.session_state["mel_dose"] = ""
+            st.session_state["cep_dose"] = ""
+            st.session_state["gap_dose"] = ""
+            st.session_state["brav_dose"] = ""
+            st.session_state["int_dose"] = ""
+
+            st.session_state["meds_type"] = ""
+            # st.session_state.meds_type_key = get_unique_key("meds_type_select")
             st.session_state["med_dose"] = ""
             st.session_state.encounter_key = get_unique_key("encounter_select")
             st.session_state["meds_taken"] = None
@@ -213,22 +225,53 @@ def medical_log_page():
             if medication == "Yes":
                 with st.container(border=True):
                     #meds_type = st.text_input("Medication Type:", key="meds_type")
-                    
-                    if "meds_type_key" not in st.session_state:
-                        st.session_state.meds_type_key = "meds_type_select"
-                    meds_type = st_free_text_select(
-                        label="Medication Type:",
-                        options=["Meloxicam","Cephalexin", "Gabapentin", "Bravecto", "Intercepter"],
-                        index=None,
-                        format_func=lambda x: x.capitalize(),
-                        placeholder="Select or enter Medication Type",
-                        disabled=False,
-                        delay=300,
-                        key=st.session_state.meds_type_key, 
-                        label_visibility="visible",
-                    )
 
-                    meds_dose = st.text_input("Medication Dose:", key="med_dose")
+                    
+                    
+                    Meloxicam = st.checkbox('Meloxicam', key="Meloxicam")
+                    if Meloxicam:
+                        buff, buff2 = st.columns([1,1])
+                        mel_dose = buff.text_input("Meloxicam Dose:", key="mel_dose")
+
+                    Cephalexin = st.checkbox('Cephalexin', key="Cephalexin")
+                    if Cephalexin:
+                        buff, buff2 = st.columns([1,1])
+                        cep_dose = buff.text_input("Cephalexin Dose:", key="cep_dose")
+
+                    Gabapentin = st.checkbox('Gabapentin', key="Gabapentin")
+                    if Gabapentin:
+                        buff, buff2 = st.columns([1,1])
+                        gap_dose = buff.text_input("Gabapentin Dose:", key="gap_dose")
+
+                    Bravecto = st.checkbox('Bravecto', key="Bravecto")
+                    if Bravecto:
+                        buff, buff2 = st.columns([1,1])
+                        brav_dose = buff.text_input("Bravecto Dose:", key="brav_dose")
+
+                    Intercepter = st.checkbox('Intercepter', key="Intercepter")
+                    if Intercepter:
+                        buff, buff2 = st.columns([1,1])
+                        int_dose = buff.text_input("Intercepter Dose:", key="int_dose")
+                    
+                    ifOther = st.checkbox('Other', key="ifOther")
+                    if ifOther:
+                        buff, buff2 = st.columns([1,1])
+                        meds_type = buff.text_input("Medication Type:", key="med_type")
+                        meds_dose = buff.text_input("Medication Dose:", key="med_dose")
+                    
+                    # if "meds_type_key" not in st.session_state:
+                    #     st.session_state.meds_type_key = "meds_type_select"
+                    # meds_type = st_free_text_select(
+                    #     label="Medication Type:",
+                    #     options=["Meloxicam","Cephalexin", "Gabapentin", "Bravecto", "Intercepter"],
+                    #     index=None,
+                    #     format_func=lambda x: x.capitalize(),
+                    #     placeholder="Select or enter Medication Type",
+                    #     disabled=False,
+                    #     delay=300,
+                    #     key=st.session_state.meds_type_key, 
+                    #     label_visibility="visible",
+                    # )
 
                     if "administration_key" not in st.session_state:
                         st.session_state.administration_key = "admin_select"
@@ -276,6 +319,11 @@ def medical_log_page():
                     
                     injury_id = add_injury_log(user_id, formatted_time, animal_group, animal_name, encounter_type, injury_type, injury_description, examination_type)
 
+                    if vet_notified == "Yes":
+                        if not vet_response:
+                            st.error("Please fill out Vet Response.")
+                            return
+
                 if sedated == "Yes":
                     if not sedation_medication:
                         st.error("Please fill out Medication used for Sedation.")
@@ -294,12 +342,46 @@ def medical_log_page():
                                     )
                     
                 if medication == "Yes":
-                    if not meds_type:
-                        st.error("Please fill out Medication used.")
+                    if Meloxicam and not mel_dose:
+                        st.error("Please fill out Meloxicam dosage.")
                         return
-                    if not meds_dose:
-                        st.error("Please fill out Medication Dosage.")
+                    elif not Meloxicam:
+                        mel_dose = "0"
+                    
+                    if Cephalexin and not cep_dose:
+                        st.error("Please fill out Cephalexin dosage.")
                         return
+                    elif not Cephalexin:
+                        cep_dose = "0"
+                    
+                    if Gabapentin and not gap_dose:
+                        st.error("Please fill out Gabapentin dosage.")
+                        return
+                    elif not Gabapentin:
+                        gap_dose = "0"
+                    
+                    if Bravecto and not brav_dose:
+                        st.error("Please fill out Bravecto dosage.")
+                        return
+                    elif not Bravecto:
+                        brav_dose = "0"
+                    
+                    if Intercepter and not int_dose:
+                        st.error("Please fill out Intercepter dosage.")
+                        return
+                    elif not Intercepter:
+                        int_dose = "0"
+                    
+                    if ifOther and not meds_type:
+                        if not meds_type:
+                            st.error("Please fill out the other Medication used.")
+                            return
+                        if not meds_dose:
+                            st.error("Please fill out the other Medication Dosage.")
+                            return
+                    elif not ifOther:
+                        meds_type = "None"
+                        meds_dose = "0"
                     if not administration_type:
                         st.error("Please fill out Sedation Administration Route.")
                         return
@@ -309,13 +391,11 @@ def medical_log_page():
                     
                     medication_id = add_medslog(
                                         user_id, formatted_time, animal_group, animal_name, encounter_type, 
-                                        meds_type, meds_dose, administration_type, meds_taken
+                                        meds_type, meds_dose, administration_type, meds_taken,
+                                        Meloxicam,Cephalexin,Gabapentin,Bravecto,Intercepter,
+                                        mel_dose,cep_dose,gap_dose,brav_dose,int_dose,ifOther
                                     )
                     
-                if vet_notified == "Yes":
-                    if not vet_response:
-                        st.error("Please fill out Vet Response.")
-                        return
                     
                 add_medslog_main(
                     user_id, formatted_time, animal_group, animal_name, encounter_type, 
