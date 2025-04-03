@@ -39,7 +39,7 @@ def dashboard():
     with fil1:
         st.title("BaysTrack Dashboard")
     with fil2:
-        filter_option = st.radio("", ("All", "Self"), horizontal=True)
+        filter_option = st.radio("Reminder", ("All", "Self"), horizontal=True)
     
     # Wrap the notes content inside the white-bordered container
     col1, col2 = st.columns([1, 1])
