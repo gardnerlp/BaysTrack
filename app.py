@@ -41,6 +41,7 @@ def dashboard():
     col1, col2 = st.columns([1, 1])
     with col1: 
         st.header("Notes")
+        st.markdown("<hr style='margin:4px 0;'>", unsafe_allow_html=True)
         with st.container(height=300, border=True):
             notes = get_notes_app(str(user_id))
             if notes:
@@ -53,10 +54,10 @@ def dashboard():
     with col2: 
         
         col1, col2 = st.columns([1, 0.7])
-
+        with col1:
+            st.header("Reminders")
         with col2:
             filter_option = st.radio("", ("All", "Self"), horizontal=True)
-        st.header("Reminders")
         with st.container(height=300, border=True):
             if filter_option == "All":
                 var = ''
