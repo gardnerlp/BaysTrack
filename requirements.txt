@@ -1,5 +1,6 @@
 pandas==2.2.3
 psycopg2_binary==2.9.10
+bcrypt==3.2.0
 python_bcrypt==0.3.2
 streamlit==1.32.0
 streamlit_calendar==1.2.1
