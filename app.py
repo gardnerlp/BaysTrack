@@ -36,6 +36,10 @@ def dashboard():
     user_id = st.session_state["user_id"]
 
     st.title("Bays Mountain Dashboard")
+
+    fil1, fil2 = st.columns([1, 0.7])
+    with fil2:
+        filter_option = st.radio("", ("All", "Self"), horizontal=True)
     
     # Wrap the notes content inside the white-bordered container
     col1, col2 = st.columns([1, 1])
@@ -51,22 +55,7 @@ def dashboard():
                 st.write("No notes available.")
 
     with col2: 
-        
-        col1, col2 = st.columns([1, 0.7])
-        with col1:
-            st.header("Reminders")
-        with col2:
-            st.markdown(
-                """ 
-                <style>
-                div[role="radiogroup"] {
-                    margin-top: -15px;  /* Adjust this value to move it higher */
-                }
-                </style>
-                """,
-                unsafe_allow_html=True,
-            )
-            filter_option = st.radio("", ("All", "Self"), horizontal=True)
+        st.header("Reminders")
         with st.container(height=300, border=True):
             if filter_option == "All":
                 var = ''
