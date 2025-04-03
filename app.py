@@ -52,7 +52,7 @@ def dashboard():
 
     with col2: 
         
-        col1, col2 = st.columns([1, 0.6])
+        col1, col2 = st.columns([1, 0.8])
         with col1:
             st.header("Reminders")
         with col2:
