@@ -75,7 +75,7 @@ def notes_page():
         search_query = st.text_input("Search notes by title or content:")
 
         # Display notes based on search query
-        notes = search_notes(search_query,str(user_id)) if search_query else get_notes(str(user_id))
+        notes = search_notes(search_query,user_id) if search_query else get_notes(user_id)
         
         # Display notes with user and timestamp
         st.subheader("Your Notes")

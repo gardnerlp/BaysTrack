@@ -20,7 +20,7 @@ def get_notes(user_id):
     FROM Notes a
     where user_id=%s;
     """
-    cursor.execute(query,user_id)
+    cursor.execute(query,[user_id])
     notes = cursor.fetchall()
     conn.close()
     return notes

@@ -80,7 +80,7 @@ def admin_page():
                         elif newpassword != repassword:
                             st.error("The new password and the confirmation password do not match.")
                         else:
-                            hashed_password = hash_password(newpassword).decode('utf-8')
+                            hashed_password = hash_password(newpassword)
                             update_password(userid_g, hashed_password)
                             st.success(f"Password updated successfully!") 
         else:
@@ -105,7 +105,7 @@ def admin_page():
                         if check_email_exists(email):
                             st.error("This email is already in use. Please use a different email.")
                         else:
-                            hashed_password = hash_password(password).decode('utf-8')
+                            hashed_password = hash_password(password)
                             add_user(username, email, hashed_password, role, active)
                             st.success(f"User {username} added successfully!")
                     else:
@@ -186,7 +186,7 @@ def admin_page():
                         elif newpassword != repassword:
                             st.error("The new password and the confirmation password do not match.")
                         else:
-                            hashed_password = hash_password(newpassword).decode('utf-8')
+                            hashed_password = hash_password(newpassword)
                             update_password(userid_g, hashed_password)
                             st.success(f"Password updated successfully!")  
 
