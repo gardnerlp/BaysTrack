@@ -40,7 +40,11 @@ def dashboard():
     # Wrap the notes content inside the white-bordered container
     col1, col2 = st.columns([1, 1])
     with col1: 
-        st.header("Notes")
+        col1, col2 = st.columns([1, 0.7])
+        with col1:
+            st.header("Notes")
+        with col2:
+            st.header("")
         with st.container(height=300, border=True):
             notes = get_notes_app(str(user_id))
             if notes:

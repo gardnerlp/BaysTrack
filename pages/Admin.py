@@ -1,5 +1,4 @@
 import streamlit as st
-from bcrypt import checkpw
 from Login import login_page
 from utils.user_utils import add_user, hash_password, check_email_exists, get_users_det, get_all_users, update_user, authenticate_user, update_password
 from utils.navbar import navbar
