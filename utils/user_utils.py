@@ -1,5 +1,5 @@
 from database.postgresql_connection import init_postgres_connection
-import bcrypt
+import bcrypt as bc
 
 def authenticate_user(email, password):
     conn = init_postgres_connection()
@@ -8,18 +8,18 @@ def authenticate_user(email, password):
     user = cursor.fetchone()
     conn.close()
 
-    if user and bcrypt.checkpw(password.encode(), user[0].encode()):
+    if user and bc.checkpw(password.encode(), user[0].encode()):
         return user[1]  # Return the role if authentication is successful
     return None
 
 # Hash a password
 def hash_password(password):
-    salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password.encode(), salt)
+    salt = bc.gensalt()
+    return bc.hashpw(password.encode(), salt)
 
 # Verify a password
 def verify_password(plain_password, hashed_password):
-    return bcrypt.checkpw(plain_password.encode(), hashed_password)
+    return bc.checkpw(plain_password.encode(), hashed_password)
 
 
 def add_user(username, email, hashed_password, role, active):
