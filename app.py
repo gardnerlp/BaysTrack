@@ -35,7 +35,7 @@ def dashboard():
 
     user_id = st.session_state["user_id"]
 
-    fil1, fil2 = st.columns([1, 0.7])
+    fil1, fil2 = st.columns([1, 0.25])
     with fil1:
         st.title("BaysTrack Dashboard")
     with fil2:
