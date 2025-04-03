@@ -56,6 +56,16 @@ def dashboard():
         with col1:
             st.header("Reminders")
         with col2:
+            st.markdown(
+                """ 
+                <style>
+                div[role="radiogroup"] {
+                    margin-top: -15px;  /* Adjust this value to move it higher */
+                }
+                </style>
+                """,
+                unsafe_allow_html=True,
+            )
             filter_option = st.radio("", ("All", "Self"), horizontal=True)
         with st.container(height=300, border=True):
             if filter_option == "All":
