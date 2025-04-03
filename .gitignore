@@ -11,3 +11,6 @@ __pycache__/
 
 # Ignore temporary backup files
 temp_backup/
+
+# Ignore secrets.toml
+.streamlit/secrets.toml
