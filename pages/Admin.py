@@ -1,14 +1,22 @@
 import streamlit as st
-from Login import login_page
+from Login import login_page, cookie_controller, clear_cookies
 from utils.user_utils import add_user, hash_password, check_email_exists, get_users_det, get_all_users, update_user, authenticate_user, update_password
 from utils.navbar import navbar
 import pandas as pd
 import time
 
+st.set_page_config(initial_sidebar_state="collapsed")
+
 def admin_page():
-    
+
     if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False  # Default to not logged in
+        if cookie_controller.get("logged_in") == True:
+            st.session_state["user_id"] = cookie_controller.get("user_id")
+            st.session_state["username"] = cookie_controller.get("username")
+            st.session_state["role"] = cookie_controller.get("role")
+            st.session_state.logged_in = True
+        else:
+            st.session_state.logged_in = False
     
     if not st.session_state.logged_in:
         login_page()
@@ -28,6 +36,7 @@ def admin_page():
                 st.markdown(hide_sidebar_css, unsafe_allow_html=True)
 
                 st.session_state.logged_in = False
+                clear_cookies()
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
                 st.write(
@@ -81,7 +90,8 @@ def admin_page():
                         else:
                             hashed_password = hash_password(newpassword)
                             update_password(userid_g, hashed_password)
-                            st.success(f"Password updated successfully!") 
+                            st.success(f"Password updated successfully!")
+                            time.sleep(1) 
         else:
 
             st.title("Admin Page")
@@ -107,6 +117,7 @@ def admin_page():
                             hashed_password = hash_password(password)
                             add_user(username, email, hashed_password, role, active)
                             st.success(f"User {username} added successfully!")
+                            time.sleep(1)
                     else:
                         st.error("All fields are required.")
 
@@ -160,7 +171,7 @@ def admin_page():
                     if submitted:
                         update_user(user_id=selected_user_id, email=st.session_state.email_mod, role=st.session_state.role_mod, active=st.session_state.active_mod)
                         alert = st.success("User details updated successfully!")
-                        time.sleep(4) # Wait for 3 seconds
+                        time.sleep(2) # Wait for 3 seconds
                         st.experimental_rerun()
                         submitted.on_click=reset_selectbox
                 
@@ -187,7 +198,8 @@ def admin_page():
                         else:
                             hashed_password = hash_password(newpassword)
                             update_password(userid_g, hashed_password)
-                            st.success(f"Password updated successfully!")  
+                            st.success(f"Password updated successfully!")
+                            time.sleep(1)  
 
             st.header("User List")
             users = get_all_users()
@@ -198,11 +210,19 @@ def admin_page():
                     df_users = pd.DataFrame(users, columns=column_names)
                     st.write(df_users)  
 
+                st.download_button(
+                    label="Download CSV",
+                    data=df_users.to_csv().encode("utf-8"),
+                    file_name="User_Data.csv",
+                    mime="text/csv",
+                    icon=":material/download:",
+                )
+
             #Button to navigate to add user section
             st.markdown("""
                 <a href="#add_users">
-                    <button style="position: fixed; right: 20px; bottom: 450px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
-                        Add New User
+                    <button style="position: fixed; right: 10px; bottom: 460px; padding: 10px; width: 50px; height: 50px; background-color: #0b5394; color: white; border: none; border-radius: 50%; font-size: 20px; cursor: pointer;">
+                    ➕
                     </button>
                 </a>
             """, unsafe_allow_html=True)
@@ -210,8 +230,8 @@ def admin_page():
             #Button to navigate to add user section
             st.markdown("""
                 <a href="#user_details">
-                    <button style="position: fixed; right: 20px; bottom: 400px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
-                        Update User Info
+                    <button style="position: fixed; right: 10px; bottom: 400px; padding: 10px; width: 50px; height: 50px; background-color: #0b5394; color: white; border: none; border-radius: 50%; font-size: 22px; cursor: pointer;">
+                        🧑‍💼
                     </button>
                 </a>
             """, unsafe_allow_html=True)
@@ -219,8 +239,8 @@ def admin_page():
             #Button to navigate to add user section
             st.markdown("""
                 <a href="#password_change">
-                    <button style="position: fixed; right: 20px; bottom: 350px; padding: 10px 20px; width: 168px; background-color: #4CAF50; color: white; border: none; border-radius: 25px; font-size: 16px; cursor: pointer;">
-                        Update Password
+                    <button style="position: fixed; right: 10px; bottom: 340px; padding: 10px; width: 50px; height: 50px; background-color: #0b5394; color: white; border: none; border-radius: 50%; font-size: 20px; cursor: pointer;">
+                        🔏
                     </button>
                 </a>
             """, unsafe_allow_html=True)

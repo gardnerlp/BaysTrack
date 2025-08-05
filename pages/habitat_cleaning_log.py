@@ -1,24 +1,33 @@
 import streamlit as st
-from Login import login_page
+from Login import login_page, cookie_controller, clear_cookies
 from utils.navbar import navbar  # Import your navbar function
 from streamlit_free_text_select import st_free_text_select
 import uuid
 from utils.habitat_cleaning_utils import add_habitat_cleaning_log
 from datetime import datetime
+import time
+
+st.set_page_config(initial_sidebar_state="collapsed")
 
 def habitat_cleaning_log():
     
     if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False  # Default to not logged in
+        if cookie_controller.get("logged_in") == True:
+            st.session_state["user_id"] = cookie_controller.get("user_id")
+            st.session_state["username"] = cookie_controller.get("username")
+            st.session_state["role"] = cookie_controller.get("role")
+            st.session_state.logged_in = True
+        else:
+            st.session_state.logged_in = False
     
     if not st.session_state.logged_in:
         login_page()
     else:
         navbar()
-
         with st.sidebar:
             if st.button("Logout", key="logout_button"):                
                 st.session_state.logged_in = False
+                clear_cookies()
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
                 st.write(
@@ -51,6 +60,8 @@ def habitat_cleaning_log():
             st.session_state.waste_removal = "No"
             st.session_state.brush_removal = "No"
             st.session_state.fence_maintenance = "No"
+
+            st.session_state["log_time"] = datetime.now().time()
             
             st.session_state.form_submitted = False
             st.rerun() 
@@ -137,6 +148,12 @@ def habitat_cleaning_log():
             #cleaning_type = st.selectbox("Select Cleaning Type", ["Deep Clean", "Routine Clean", "Spot Clean"], key="cleaning_type", index=None)
 
             findings = st.text_input("Findings", key="findings") #if findings == "": findings = "NSF"
+
+            st.markdown("<hr style='margin:4px 0;'>", unsafe_allow_html=True)
+            log_time = st.time_input("Log Time", key="log_time", step=300)
+            st.markdown("<hr style='margin:4px 0;'>", unsafe_allow_html=True)
+
+            formatted_log_time = log_time.strftime("%H:%M:%S")
             
         
             if st.button("Submit Habitat Cleaning Log"):
@@ -157,9 +174,10 @@ def habitat_cleaning_log():
                 if not findings:
                     findings = "NSF"
                 
-                add_habitat_cleaning_log(user_id, formatted_time, animal_group, observation_type, habitat_name, findings, description, pad_cleaning, water_change, pond_cleaning, waste_removal, brush_removal, fence_maintenance)
+                add_habitat_cleaning_log(user_id, formatted_time, animal_group, observation_type, habitat_name, findings, description, pad_cleaning, water_change, pond_cleaning, waste_removal, brush_removal, fence_maintenance, formatted_log_time)
 
                 st.success("Habitat cleaning log submitted successfully!")
+                time.sleep(1)
                 st.session_state.form_submitted = True
                 st.rerun()
 

@@ -1,24 +1,33 @@
 import streamlit as st
-from Login import login_page
+from Login import login_page, cookie_controller, clear_cookies
 from utils.navbar import navbar
 from streamlit_free_text_select import st_free_text_select
 import datetime
 import uuid
 from utils.enrichment_utils import add_enrichment_log
+import time
+
+st.set_page_config(initial_sidebar_state="collapsed")
 
 def enrichment_log():
-    
+
     if "logged_in" not in st.session_state:
-        st.session_state.logged_in = False  # Default to not logged in
+        if cookie_controller.get("logged_in") == True:
+            st.session_state["user_id"] = cookie_controller.get("user_id")
+            st.session_state["username"] = cookie_controller.get("username")
+            st.session_state["role"] = cookie_controller.get("role")
+            st.session_state.logged_in = True
+        else:
+            st.session_state.logged_in = False
     
     if not st.session_state.logged_in:
         login_page()
     else:
         navbar()
-
         with st.sidebar:
             if st.button("Logout", key="logout_button"):                
                 st.session_state.logged_in = False
+                clear_cookies()
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
                 st.write(
@@ -46,6 +55,8 @@ def enrichment_log():
             st.session_state.animal_key = get_unique_key("animal_select")
             st.session_state.observation_key = get_unique_key("observation_select")
             st.session_state.enrichment_key = get_unique_key("enrichment_select")
+
+            st.session_state["log_time"] = datetime.datetime.now().time()
            
             st.session_state.form_submitted = False
             st.rerun()  # Refresh the page to clear the form
@@ -120,7 +131,13 @@ def enrichment_log():
                 delay=300,
                 label_visibility="visible",
                 key=st.session_state.observation_key,
-            ) 
+            )
+
+            st.markdown("<hr style='margin:4px 0;'>", unsafe_allow_html=True)
+            log_time = st.time_input("Log Time", key="log_time", step=300)
+            st.markdown("<hr style='margin:4px 0;'>", unsafe_allow_html=True)
+
+            formatted_log_time = log_time.strftime("%H:%M:%S")
 
             if st.button("Submit Enrichment Log"):
 
@@ -150,10 +167,12 @@ def enrichment_log():
                     details, 
                     formatted_time_in, 
                     formatted_time_out,
-                    observation_type
+                    observation_type,
+                    formatted_log_time
                 )
                 
                 st.success("Enrichment log submitted successfully!")
+                time.sleep(1)
                 st.session_state.form_submitted = True
                 st.rerun()
                 

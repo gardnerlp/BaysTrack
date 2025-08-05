@@ -59,7 +59,7 @@ def get_reminders(user_id):
     FROM reminders
     WHERE user_id = %s
     """
-    params = (user_id)
+    params = ([user_id])
     cursor.execute(query, params)
     reminders = cursor.fetchall()
     conn.close()
@@ -76,7 +76,7 @@ def get_all_reminders(user_id):
     """
     if user_id:
         query_string += " where assigned_to = %s order by date"
-        cursor.execute(query_string, user_id)
+        cursor.execute(query_string, [user_id])
     else:
         query_string += "order by date desc"
         cursor.execute(query_string)
@@ -131,7 +131,7 @@ def get_assigned_reminders(user_id):
     FROM reminders
     WHERE assigned_to = %s
     """
-    params = (user_id)
+    params = ([user_id])
     cursor.execute(query, params)
     reminders = cursor.fetchall()
     conn.close()
